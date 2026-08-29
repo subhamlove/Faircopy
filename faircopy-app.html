@@ -1,0 +1,2354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>Faircopy — Resume Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root{
+  color-scheme: light only;
+  --ink:#1B2540;
+  --ink-soft:#3A4560;
+  --paper:#EDEEF2;
+  --paper-card:#F6F6F4;
+  --white:#FFFFFF;
+  --text:#2C2C2C;
+  --text-muted:#6B6F7A;
+  --accent:#A83E2C;
+  --accent-soft:#F3E2DD;
+  --line:#D7D8DE;
+  --line-strong:#B8BAC4;
+  --radius:10px;
+  --font-display:'Fraunces',serif;
+  --font-ui:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-serif:'Source Serif 4',Georgia,serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font-ui);background:var(--paper);color:var(--text);}
+.app{min-height:100vh;display:flex;flex-direction:column;}
+
+/* ---------- Topbar ---------- */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 28px;background:var(--ink);color:var(--white);
+  position:sticky;top:0;z-index:20;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-mark{font-family:var(--font-display);font-size:20px;font-weight:600;letter-spacing:0.2px;line-height:1.15;}
+.brand-tag{font-family:var(--font-mono);font-size:10.5px;color:#AEB6CC;letter-spacing:0.5px;text-transform:uppercase;line-height:1.3;}
+.logo-mark{
+  width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#C9573D);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);
+  font-weight:600;font-size:16px;color:#fff;flex-shrink:0;box-shadow:0 2px 6px rgba(168,62,44,0.35);
+}
+.btn svg{width:14px;height:14px;flex-shrink:0;}
+.actions{display:flex;gap:8px;flex-wrap:wrap;}
+.btn{
+  font-family:var(--font-ui);font-size:13px;font-weight:500;
+  padding:8px 14px;border-radius:7px;border:1px solid transparent;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  background:transparent;color:#E7E9F0;border-color:#3E4A6B;
+  transition:background .15s ease;
+}
+.btn:hover{background:#2A345A;}
+.btn-accent{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-accent:hover{background:#8F3423;}
+.btn-ghost{border-color:transparent;padding:8px 10px;}
+
+/* ---------- Workspace ---------- */
+.workspace{display:flex;flex:1;min-height:0;}
+.form-pane{
+  width:42%;max-width:560px;min-width:360px;
+  background:var(--paper);border-right:1px solid var(--line);
+  padding:24px 24px 80px;overflow-y:auto;
+}
+.preview-pane{
+  flex:1;padding:40px 32px;display:flex;flex-direction:column;align-items:center;overflow-y:auto;
+  background:
+    radial-gradient(circle at 1px 1px, rgba(27,37,64,0.06) 1px, transparent 0) 0 0/22px 22px,
+    linear-gradient(180deg,#E9EAEF,#DDDEE5);
+}
+
+/* ---------- Avatar header (Facebook-style) ---------- */
+.avatar-header{
+  display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#fff,var(--paper-card));
+  border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px;
+}
+.avatar-circle{
+  position:relative;width:72px;height:72px;flex-shrink:0;
+}
+.avatar-circle img, .avatar-placeholder{
+  width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px rgba(20,20,30,0.15);
+}
+.avatar-placeholder{
+  display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--ink),var(--ink-soft));
+  color:#fff;font-family:var(--font-display);font-size:26px;font-weight:600;
+}
+.avatar-camera{
+  position:absolute;bottom:-2px;right:-2px;width:26px;height:26px;border-radius:50%;background:var(--accent);
+  border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 2px 6px rgba(20,20,30,0.25);transition:transform .12s ease;
+}
+.avatar-camera:hover{transform:scale(1.08);}
+.avatar-camera svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;}
+.avatar-info{flex:1;min-width:0;}
+.avatar-name{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--ink);}
+.avatar-hint{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+.avatar-remove{background:none;border:none;color:var(--accent);font-size:11.5px;cursor:pointer;font-weight:500;padding:0;margin-top:4px;}
+.avatar-remove:hover{text-decoration:underline;}
+
+/* ---------- Form sections ---------- */
+.section{
+  background:var(--white);border:1px solid var(--line);border-left:3px solid transparent;border-radius:var(--radius);
+  margin-bottom:14px;overflow:hidden;transition:border-color .15s ease, box-shadow .15s ease;
+}
+.section:not(.collapsed){border-left-color:var(--accent);box-shadow:0 2px 10px rgba(20,20,30,0.05);}
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;cursor:pointer;user-select:none;
+}
+.section-head:hover{background:#FAFAF9;}
+.section-title{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--ink);}
+.section-sub{font-family:var(--font-mono);font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+.chevron{transition:transform .2s ease;color:var(--text-muted);font-size:13px;}
+.section.collapsed .chevron{transform:rotate(-90deg);}
+.section-body{padding:0 16px 16px;}
+.section.collapsed .section-body{display:none;}
+
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:5px;}
+.field input,.field textarea{
+  width:100%;font-family:var(--font-ui);font-size:13.5px;color:var(--text);
+  padding:9px 11px;border:1px solid var(--line-strong);border-radius:7px;background:#FCFCFB;
+}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--accent);background:#fff;}
+.field textarea{resize:vertical;min-height:64px;line-height:1.5;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+.entry-card{
+  border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:10px;background:#FAFAF8;position:relative;
+}
+.entry-remove{
+  position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;
+  color:var(--text-muted);font-size:16px;line-height:1;
+}
+.entry-remove:hover{color:var(--accent);}
+.add-btn{
+  width:100%;padding:9px;border:1px dashed var(--line-strong);border-radius:8px;background:none;
+  font-family:var(--font-ui);font-size:13px;color:var(--ink-soft);cursor:pointer;font-weight:500;
+}
+.add-btn:hover{border-color:var(--accent);color:var(--accent);}
+.photo-row{display:flex;align-items:center;gap:12px;}
+.photo-thumb{width:56px;height:56px;border-radius:50%;object-fit:cover;border:1px solid var(--line);}
+.btn-text-remove{background:none;border:none;color:var(--accent);font-size:12.5px;cursor:pointer;font-weight:500;}
+.btn-text-remove:hover{text-decoration:underline;}
+.checkbox-row{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-muted);margin-top:-4px;margin-bottom:10px;}
+.checkbox-row input{width:auto;}
+
+/* ---------- Template tabs ---------- */
+.template-tabs{display:flex;gap:8px;margin-bottom:18px;}
+.tpl-pick{
+  width:74px;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:8px 7px 7px;
+  cursor:pointer;transition:border-color .15s ease,transform .12s ease,box-shadow .15s ease;
+}
+.tpl-pick:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(20,20,30,0.1);}
+.tpl-pick.active{border-color:var(--accent);box-shadow:0 6px 14px rgba(168,62,44,0.15);}
+.tpl-pick-mock{display:block;height:34px;margin-bottom:6px;padding:4px;background:#FAFAF9;border-radius:4px;}
+.pm-line{display:block;height:3px;background:#DCDDE4;border-radius:1px;margin-bottom:2.5px;}
+.pm-line.dark{background:var(--ink);opacity:0.7;height:4px;}
+.pm-line.accent{background:var(--accent);opacity:0.55;}
+.pm-block{display:inline-block;width:9px;height:26px;background:var(--ink);opacity:0.75;border-radius:2px;float:left;margin-right:4px;}
+.pm-dot{display:block;width:8px;height:8px;border-radius:50%;background:var(--line-strong);margin-bottom:3px;}
+.pm-band{display:block;width:100%;height:12px;background:var(--accent);opacity:0.65;border-radius:2px;margin-bottom:6px;}
+.tpl-pick-label{display:block;font-size:10px;font-weight:600;color:var(--ink-soft);text-align:center;}
+.tpl-pick.active .tpl-pick-label{color:var(--accent);}
+.theme-swatches{display:flex;gap:8px;margin-top:10px;}
+.theme-swatch{
+  width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;
+  padding:0;position:relative;transition:transform .12s ease;box-shadow:0 1px 3px rgba(20,20,30,0.2) inset;
+}
+.theme-swatch:hover{transform:scale(1.12);}
+.theme-swatch.active{border-color:#fff;box-shadow:0 0 0 2px var(--ink);}
+.custom-swatch{
+  position:relative;overflow:hidden;cursor:pointer;
+  background:conic-gradient(from 0deg, #ff0000, #ffae00, #ffe600, #4dff00, #00fff7, #0066ff, #a600ff, #ff0090, #ff0000);
+  display:flex;align-items:center;justify-content:center;
+}
+.custom-swatch-plus{color:#fff;font-size:14px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.5);pointer-events:none;}
+.custom-swatch input[type="color"]{
+  position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;padding:0;
+}
+
+/* ---------- Paper / preview ---------- */
+.paper-shell{filter:drop-shadow(0 14px 34px rgba(20,20,30,0.22)) drop-shadow(0 2px 6px rgba(20,20,30,0.12));}
+.paper{
+  width:816px;min-height:1056px;background:var(--white);padding:0;position:relative;
+}
+@media (max-width:900px){
+  .paper{width:100%;min-height:auto;}
+  .paper-shell{width:100%;}
+}
+.watermark-overlay{display:none;}
+.paper.locked{user-select:none;-webkit-user-select:none;}
+.paper.locked .watermark-overlay{
+  display:block;position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5;
+  background-image:repeating-linear-gradient(
+    -32deg,
+    transparent 0 90px,
+    rgba(27,37,64,0.055) 90px 92px,
+    transparent 92px 200px
+  );
+}
+.paper.locked .watermark-overlay::before{
+  content:'FAIRCOPY · SUBSCRIBE TO DOWNLOAD';
+  position:absolute;top:44%;left:50%;transform:translate(-50%,-50%) rotate(-32deg);
+  font-family:var(--font-mono);font-size:15px;letter-spacing:2px;color:rgba(27,37,64,0.16);
+  white-space:nowrap;font-weight:600;
+}
+
+/* ===== Resume document base ===== */
+.resume-doc{width:100%;min-height:1056px;color:#222;}
+.resume-doc h1,.resume-doc h2,.resume-doc h3{margin:0;}
+.resume-doc .empty-hint{
+  display:flex;align-items:center;justify-content:center;height:1056px;
+  color:#B4B6BE;font-family:var(--font-ui);font-size:14px;text-align:center;padding:40px;
+}
+
+/* ---- Classic template ---- */
+.tpl-classic{font-family:var(--font-serif);padding:56px 64px;}
+.tpl-classic .r-header{text-align:center;border-bottom:2px solid var(--r-accent, var(--accent));padding-bottom:14px;margin-bottom:18px;}
+.tpl-classic .r-name{font-size:30px;font-weight:600;letter-spacing:0.5px;}
+.tpl-classic .r-role{font-size:14px;color:var(--r-accent, var(--accent));margin-top:4px;font-style:italic;}
+.tpl-classic .r-contact{font-size:11.5px;color:#444;margin-top:8px;letter-spacing:0.3px;}
+.tpl-classic .r-section{margin-bottom:16px;}
+.tpl-classic .r-sec-title{font-size:12.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#222;border-bottom:1px solid var(--r-accent, var(--accent));padding-bottom:4px;margin-bottom:10px;}
+.tpl-classic .r-item{margin-bottom:11px;}
+.tpl-classic .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;}
+.tpl-classic .r-item-sub{display:flex;justify-content:space-between;font-size:12px;font-style:italic;color:#555;margin-top:1px;}
+.tpl-classic .r-bullets{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.55;}
+.tpl-classic .r-skills{font-size:12.5px;line-height:1.8;}
+
+/* ---- Modern template ---- */
+.tpl-modern{display:grid;grid-template-columns:250px 1fr;min-height:1056px;font-family:var(--font-ui);}
+.tpl-modern .r-side{background:var(--ink);color:#EDEEF4;padding:40px 26px;}
+.tpl-modern .r-side .r-name{font-family:var(--font-display);font-size:23px;font-weight:600;line-height:1.2;}
+.tpl-modern .r-side .r-role{font-size:12.5px;color:#B9C0D6;margin-top:6px;}
+.tpl-modern .r-side .r-block{margin-top:26px;}
+.tpl-modern .r-side .r-block-title{font-family:var(--font-mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:#8891AC;margin-bottom:8px;}
+.tpl-modern .r-side .r-contact-line{font-size:11.5px;color:#DADFEE;margin-bottom:6px;word-break:break-word;}
+.tpl-modern .r-side .r-skill-tag{display:inline-block;background:#2A345A;color:#DCE1F0;font-size:11px;padding:3px 9px;border-radius:12px;margin:0 5px 5px 0;}
+.tpl-modern .r-side .r-edu-item{font-size:11.5px;margin-bottom:10px;line-height:1.4;}
+.tpl-modern .r-side .r-edu-item b{display:block;color:#fff;font-size:12px;}
+.tpl-modern .r-main{padding:40px 34px;}
+.tpl-modern .r-main .r-section{margin-bottom:20px;}
+.tpl-modern .r-main .r-sec-title{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--r-accent, var(--accent));border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:12px;}
+.tpl-modern .r-item{margin-bottom:14px;}
+.tpl-modern .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#1B2540;}
+.tpl-modern .r-item-sub{font-size:12px;color:#777;margin-top:1px;}
+.tpl-modern .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
+.tpl-modern .r-summary{font-size:13px;line-height:1.6;color:#333;}
+
+/* ---- Minimal template ---- */
+.tpl-minimal{font-family:var(--font-ui);padding:54px 60px;font-weight:400;}
+.tpl-minimal .r-header{margin-bottom:26px;}
+.tpl-minimal .r-name{font-size:26px;font-weight:600;letter-spacing:-0.3px;color:#111;}
+.tpl-minimal .r-role{font-size:13px;color:var(--r-accent, var(--accent));margin-top:3px;font-weight:500;}
+.tpl-minimal .r-contact{font-size:11.5px;color:#888;margin-top:10px;letter-spacing:0.2px;}
+.tpl-minimal .r-section{margin-bottom:20px;}
+.tpl-minimal .r-sec-title{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;font-weight:600;color:#AAA;margin-bottom:10px;}
+.tpl-minimal .r-item{margin-bottom:13px;}
+.tpl-minimal .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#111;}
+.tpl-minimal .r-item-sub{font-size:12px;color:#999;margin-top:1px;}
+.tpl-minimal .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.6;color:#333;}
+.tpl-minimal .r-skills span{display:inline-block;font-size:12px;color:#333;margin:0 14px 6px 0;}
+
+/* ---- Executive template ---- */
+.tpl-executive{font-family:var(--font-serif);padding:52px 60px;}
+.tpl-executive .r-header{display:flex;align-items:center;gap:24px;border-bottom:3px double #222;padding-bottom:18px;margin-bottom:20px;}
+.tpl-executive .r-photo{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--r-accent, var(--accent));flex-shrink:0;}
+.tpl-executive .r-name{font-size:29px;font-weight:600;letter-spacing:0.3px;color:#1A1A1A;}
+.tpl-executive .r-role{font-size:14px;color:var(--r-accent, var(--accent));margin-top:4px;letter-spacing:0.5px;text-transform:uppercase;}
+.tpl-executive .r-contact{font-size:11.5px;color:#555;margin-top:8px;}
+.tpl-executive .r-section{margin-bottom:18px;}
+.tpl-executive .r-sec-title{font-size:13px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600;color:var(--r-accent, var(--accent));margin-bottom:10px;}
+.tpl-executive .r-item{margin-bottom:12px;}
+.tpl-executive .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#1A1A1A;}
+.tpl-executive .r-item-sub{display:flex;justify-content:space-between;font-size:12px;font-style:italic;color:#666;margin-top:1px;}
+.tpl-executive .r-bullets{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.6;}
+.tpl-executive .r-skills{font-size:12.5px;line-height:1.8;}
+
+/* ---- Compact / ATS-friendly template ---- */
+.tpl-compact{font-family:var(--font-ui);padding:34px 40px;font-size:12px;line-height:1.4;}
+.tpl-compact .r-header{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.tpl-compact .r-photo{width:52px;height:52px;border-radius:6px;object-fit:cover;flex-shrink:0;}
+.tpl-compact .r-name{font-size:19px;font-weight:600;color:#111;}
+.tpl-compact .r-role{font-size:12px;color:#555;margin-top:2px;}
+.tpl-compact .r-contact{font-size:10.5px;color:#666;margin-top:4px;}
+.tpl-compact .r-section{margin-bottom:10px;}
+.tpl-compact .r-sec-title{font-size:11px;letter-spacing:0.8px;text-transform:uppercase;font-weight:700;color:#111;border-bottom:2px solid var(--r-accent, var(--accent));padding-bottom:3px;margin-bottom:6px;}
+.tpl-compact .r-item{margin-bottom:7px;}
+.tpl-compact .r-item-top{display:flex;justify-content:space-between;font-size:12px;font-weight:600;}
+.tpl-compact .r-item-sub{font-size:10.5px;color:#777;}
+.tpl-compact .r-bullets{margin:4px 0 0;padding-left:15px;font-size:11px;line-height:1.45;}
+.tpl-compact .r-skills{font-size:11px;line-height:1.6;}
+
+/* ---- Timeline template ---- */
+.tpl-timeline{font-family:var(--font-ui);padding:50px 58px;}
+.tpl-timeline .r-header{margin-bottom:24px;display:flex;align-items:center;gap:16px;}
+.tpl-timeline .r-photo{width:66px;height:66px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--r-accent, var(--accent));}
+.tpl-timeline .r-name{font-size:25px;font-weight:600;color:#161616;}
+.tpl-timeline .r-role{font-size:13px;color:var(--r-accent, var(--accent));margin-top:3px;font-weight:500;}
+.tpl-timeline .r-contact{font-size:11.5px;color:#888;margin-top:8px;}
+.tpl-timeline .r-section{margin-bottom:20px;}
+.tpl-timeline .r-sec-title{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;font-weight:700;color:#333;margin-bottom:14px;}
+.tpl-timeline .r-item{position:relative;padding-left:22px;padding-bottom:16px;margin-left:4px;border-left:2px solid var(--line);}
+.tpl-timeline .r-item::before{content:'';position:absolute;left:-6px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--r-accent, var(--accent));box-shadow:0 0 0 3px #fff;}
+.tpl-timeline .r-item:last-child{border-left-color:transparent;padding-bottom:0;}
+.tpl-timeline .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#161616;}
+.tpl-timeline .r-item-sub{font-size:11.5px;color:#999;margin-top:1px;}
+.tpl-timeline .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
+.tpl-timeline .r-skills{font-size:12.5px;line-height:1.8;}
+
+/* ---- Panel template ---- */
+.tpl-panel{font-family:var(--font-ui);padding:0;}
+.tpl-panel .r-header{background:var(--r-accent, var(--accent));color:#fff;padding:40px 50px 32px;display:flex;align-items:center;gap:18px;}
+.tpl-panel .r-photo{width:74px;height:74px;border-radius:50%;object-fit:cover;flex-shrink:0;border:3px solid rgba(255,255,255,0.6);}
+.tpl-panel .r-name{font-size:27px;font-weight:600;}
+.tpl-panel .r-role{font-size:13px;color:rgba(255,255,255,0.85);margin-top:4px;}
+.tpl-panel .r-contact{font-size:11.5px;color:rgba(255,255,255,0.8);margin-top:8px;}
+.tpl-panel .r-body{padding:32px 50px 40px;}
+.tpl-panel .r-section{margin-bottom:18px;}
+.tpl-panel .r-sec-title{font-size:12.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:#1a1a1a;border-left:4px solid var(--r-accent, var(--accent));padding-left:10px;margin-bottom:12px;}
+.tpl-panel .r-item{margin-bottom:12px;}
+.tpl-panel .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#161616;}
+.tpl-panel .r-item-sub{font-size:11.5px;color:#888;margin-top:1px;}
+.tpl-panel .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
+.tpl-panel .r-skills{font-size:12.5px;line-height:1.8;}
+
+/* ---- Boxed template ---- */
+.tpl-boxed{font-family:var(--font-ui);padding:46px 50px;}
+.tpl-boxed .r-header{margin-bottom:22px;}
+.tpl-boxed .r-name{font-size:26px;font-weight:700;color:#161616;}
+.tpl-boxed .r-role{color:var(--r-accent, var(--accent));font-weight:500;margin-top:3px;font-size:13px;}
+.tpl-boxed .r-contact{font-size:11.5px;color:#888;margin-top:8px;}
+.tpl-boxed .r-section{background:#FAFAF9;border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+.tpl-boxed .r-sec-title{font-size:11.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--r-accent, var(--accent));margin-bottom:10px;}
+.tpl-boxed .r-item{margin-bottom:11px;}
+.tpl-boxed .r-item:last-child{margin-bottom:0;}
+.tpl-boxed .r-item-top{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#161616;}
+.tpl-boxed .r-item-sub{font-size:11px;color:#888;margin-top:1px;}
+.tpl-boxed .r-bullets{margin:5px 0 0;padding-left:16px;font-size:12px;line-height:1.5;color:#333;}
+.tpl-boxed .r-skills{font-size:12px;line-height:1.7;}
+
+/* ---- Split template ---- */
+.tpl-split{display:grid;grid-template-columns:270px 1fr;min-height:1056px;font-family:var(--font-ui);}
+.tpl-split .r-side{background:var(--r-accent, var(--accent));color:#fff;padding:44px 30px;display:flex;flex-direction:column;justify-content:center;}
+.tpl-split .r-side .r-photo{width:78px;height:78px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.55);margin-bottom:16px;}
+.tpl-split .r-side .r-name{font-family:var(--font-display);font-size:23px;font-weight:600;line-height:1.25;}
+.tpl-split .r-side .r-role{font-size:12px;color:rgba(255,255,255,0.85);margin-top:8px;}
+.tpl-split .r-side .r-contact-line{font-size:11px;color:rgba(255,255,255,0.82);margin-top:12px;word-break:break-word;}
+.tpl-split .r-main{padding:44px 36px;}
+.tpl-split .r-main .r-section{margin-bottom:18px;}
+.tpl-split .r-main .r-sec-title{font-family:var(--font-display);font-size:14.5px;font-weight:600;color:var(--r-accent, var(--accent));border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:12px;}
+.tpl-split .r-item{margin-bottom:13px;}
+.tpl-split .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#161616;}
+.tpl-split .r-item-sub{font-size:11.5px;color:#888;margin-top:1px;}
+.tpl-split .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
+.tpl-split .r-skills{font-size:12.5px;line-height:1.8;}
+
+/* ---- Banner template ---- */
+.tpl-banner{font-family:var(--font-serif);padding:0;}
+.tpl-banner .r-header{background:var(--r-accent, var(--accent));color:#fff;padding:56px 50px 36px;text-align:center;}
+.tpl-banner .r-photo{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #fff;margin:0 auto 14px;display:block;}
+.tpl-banner .r-name{font-size:29px;font-weight:600;}
+.tpl-banner .r-role{font-size:12.5px;letter-spacing:1.5px;text-transform:uppercase;margin-top:8px;color:rgba(255,255,255,0.85);}
+.tpl-banner .r-contact{font-size:11.5px;color:rgba(255,255,255,0.8);margin-top:12px;}
+.tpl-banner .r-body{padding:38px 56px 44px;}
+.tpl-banner .r-section{margin-bottom:18px;}
+.tpl-banner .r-sec-title{text-align:center;font-size:12.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:var(--r-accent, var(--accent));margin-bottom:12px;}
+.tpl-banner .r-item{margin-bottom:13px;}
+.tpl-banner .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#1a1a1a;}
+.tpl-banner .r-item-sub{font-size:12px;font-style:italic;color:#777;margin-top:1px;}
+.tpl-banner .r-bullets{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.6;}
+.tpl-banner .r-skills{font-size:12.5px;line-height:1.8;text-align:center;}
+
+/* ---- Infographic template ---- */
+.tpl-infographic{display:grid;grid-template-columns:230px 1fr;min-height:1056px;font-family:var(--font-ui);}
+.tpl-infographic .r-side{background:#F6F6F4;padding:40px 26px;border-right:1px solid var(--line);}
+.tpl-infographic .r-photo{width:72px;height:72px;border-radius:50%;object-fit:cover;margin-bottom:14px;border:3px solid var(--r-accent, var(--accent));}
+.tpl-infographic .r-name{font-family:var(--font-display);font-size:19px;font-weight:600;color:#1a1a1a;line-height:1.25;}
+.tpl-infographic .r-role{font-size:11.5px;color:var(--r-accent, var(--accent));margin-top:5px;}
+.tpl-infographic .r-block{margin-top:24px;}
+.tpl-infographic .r-block-title{font-family:var(--font-mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#999;margin-bottom:10px;}
+.tpl-infographic .r-contact-line{font-size:11px;color:#555;margin-bottom:6px;word-break:break-word;}
+.tpl-infographic .r-skill-bar{margin-bottom:10px;}
+.tpl-infographic .r-skill-bar-label{font-size:11px;color:#333;margin-bottom:4px;}
+.tpl-infographic .r-skill-bar-track{height:5px;background:#E4E4E0;border-radius:3px;overflow:hidden;}
+.tpl-infographic .r-skill-bar-fill{height:100%;width:80%;background:var(--r-accent, var(--accent));border-radius:3px;}
+.tpl-infographic .r-main{padding:40px 34px;}
+.tpl-infographic .r-main .r-section{margin-bottom:20px;}
+.tpl-infographic .r-main .r-sec-title{font-family:var(--font-display);font-size:15px;font-weight:600;color:#1a1a1a;border-bottom:2px solid var(--r-accent, var(--accent));display:inline-block;padding-bottom:4px;margin-bottom:12px;}
+.tpl-infographic .r-item{margin-bottom:14px;}
+.tpl-infographic .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#1a1a1a;}
+.tpl-infographic .r-item-sub{font-size:11.5px;color:#888;margin-top:1px;}
+.tpl-infographic .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
+
+/* ---- Letterhead template ---- */
+.tpl-letterhead{font-family:var(--font-serif);padding:54px 64px;text-align:center;}
+.tpl-letterhead .r-monogram{width:56px;height:56px;border-radius:50%;background:var(--r-accent, var(--accent));color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:22px;font-weight:600;margin:0 auto 14px;}
+.tpl-letterhead .r-photo{width:70px;height:70px;border-radius:50%;object-fit:cover;margin:0 auto 14px;border:2px solid var(--r-accent, var(--accent));}
+.tpl-letterhead .r-name{font-size:25px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#1a1a1a;}
+.tpl-letterhead .r-role{font-size:12.5px;color:#666;margin-top:6px;font-style:italic;}
+.tpl-letterhead .r-contact{font-size:11px;color:#888;margin-top:10px;}
+.tpl-letterhead .r-section{margin-top:22px;text-align:left;max-width:600px;margin-left:auto;margin-right:auto;}
+.tpl-letterhead .r-sec-title{text-align:center;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--r-accent, var(--accent));margin-bottom:12px;font-weight:600;}
+.tpl-letterhead .r-item{margin-bottom:13px;}
+.tpl-letterhead .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#1a1a1a;}
+.tpl-letterhead .r-item-sub{font-size:12px;font-style:italic;color:#777;margin-top:1px;}
+.tpl-letterhead .r-bullets{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.6;}
+.tpl-letterhead .r-skills{font-size:12.5px;line-height:1.8;text-align:center;}
+
+/* ---- Grid template ---- */
+.tpl-gridtpl{font-family:var(--font-ui);padding:46px 50px;}
+.tpl-gridtpl .r-name{font-size:26px;font-weight:700;color:#161616;}
+.tpl-gridtpl .r-role{color:var(--r-accent, var(--accent));font-weight:500;margin-top:3px;font-size:13px;}
+.tpl-gridtpl .r-contact{font-size:11.5px;color:#888;margin-top:8px;margin-bottom:20px;}
+.tpl-gridtpl .r-section{margin-bottom:18px;}
+.tpl-gridtpl .r-sec-title{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:#1a1a1a;margin-bottom:10px;}
+.tpl-gridtpl .r-item-top{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#161616;}
+.tpl-gridtpl .r-item-sub{font-size:11px;color:#888;margin-top:1px;}
+.tpl-gridtpl .r-bullets{margin:5px 0 0;padding-left:16px;font-size:12px;line-height:1.5;color:#333;}
+.tpl-gridtpl .r-item{margin-bottom:10px;}
+.tpl-gridtpl .r-grid-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.tpl-gridtpl .r-grid-card{background:#FAFAF9;border:1px solid var(--line);border-radius:8px;padding:14px 16px;}
+.tpl-gridtpl .r-grid-card .r-sec-title{margin-bottom:8px;}
+.tpl-gridtpl .r-skills{font-size:12px;line-height:1.7;}
+
+/* ---- Ribbon template ---- */
+.tpl-ribbon{font-family:var(--font-ui);padding:48px 54px 48px 64px;position:relative;}
+.tpl-ribbon::before{content:'';position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--r-accent, var(--accent));}
+.tpl-ribbon .r-header{margin-bottom:22px;}
+.tpl-ribbon .r-name{font-size:27px;font-weight:700;color:#161616;}
+.tpl-ribbon .r-role{color:var(--r-accent, var(--accent));font-size:13px;margin-top:4px;font-weight:500;}
+.tpl-ribbon .r-contact{font-size:11.5px;color:#888;margin-top:8px;}
+.tpl-ribbon .r-section{margin-bottom:18px;}
+.tpl-ribbon .r-sec-title{font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#1a1a1a;margin-bottom:10px;}
+.tpl-ribbon .r-item{margin-bottom:12px;}
+.tpl-ribbon .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#161616;}
+.tpl-ribbon .r-item-sub{font-size:11.5px;color:#888;margin-top:1px;}
+.tpl-ribbon .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
+.tpl-ribbon .r-skills{font-size:12.5px;line-height:1.8;}
+
+/* ---- Tech template ---- */
+.tpl-tech{font-family:var(--font-ui);padding:46px 50px;}
+.tpl-tech .r-name{font-family:var(--font-mono);font-size:22px;font-weight:600;color:#161616;}
+.tpl-tech .r-role{font-family:var(--font-mono);font-size:12px;color:var(--r-accent, var(--accent));margin-top:4px;}
+.tpl-tech .r-contact{font-family:var(--font-mono);font-size:10.5px;color:#888;margin-top:8px;}
+.tpl-tech .r-section{margin-bottom:18px;}
+.tpl-tech .r-sec-title{font-family:var(--font-mono);font-size:11px;color:var(--r-accent, var(--accent));margin-bottom:10px;}
+.tpl-tech .r-sec-title::before{content:'// ';}
+.tpl-tech .r-item{margin-bottom:12px;}
+.tpl-tech .r-item-top{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#161616;}
+.tpl-tech .r-item-sub{font-family:var(--font-mono);font-size:11px;color:#888;margin-top:1px;}
+.tpl-tech .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
+.tpl-tech .r-skills{font-family:var(--font-mono);font-size:11.5px;line-height:2;background:#F6F6F4;padding:10px 12px;border-radius:6px;border:1px solid var(--line);}
+
+/* ---- Balanced (two equal columns) template ---- */
+.tpl-balanced{display:grid;grid-template-columns:1fr 1fr;gap:36px;padding:46px 50px;font-family:var(--font-ui);}
+.tpl-balanced .r-header{grid-column:1/-1;margin-bottom:6px;}
+.tpl-balanced .r-name{font-size:26px;font-weight:700;color:#161616;}
+.tpl-balanced .r-role{color:var(--r-accent, var(--accent));font-size:13px;margin-top:4px;}
+.tpl-balanced .r-contact{font-size:11.5px;color:#888;margin-top:8px;margin-bottom:10px;}
+.tpl-balanced .r-section{margin-bottom:16px;}
+.tpl-balanced .r-sec-title{font-size:11.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:#1a1a1a;border-bottom:2px solid var(--r-accent, var(--accent));display:inline-block;padding-bottom:3px;margin-bottom:10px;}
+.tpl-balanced .r-item{margin-bottom:11px;}
+.tpl-balanced .r-item-top{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;color:#161616;}
+.tpl-balanced .r-item-sub{font-size:11px;color:#888;margin-top:1px;}
+.tpl-balanced .r-bullets{margin:5px 0 0;padding-left:14px;font-size:12px;line-height:1.5;color:#333;}
+.tpl-balanced .r-skills{font-size:12px;line-height:1.7;}
+
+/* ---- Bold Header template ---- */
+.tpl-boldhead{font-family:var(--font-ui);padding:50px 54px;}
+.tpl-boldhead .r-header{border-bottom:3px solid var(--r-accent, var(--accent));padding-bottom:18px;margin-bottom:22px;}
+.tpl-boldhead .r-name{font-family:var(--font-display);font-size:40px;font-weight:700;color:#111;letter-spacing:-1px;line-height:1.05;}
+.tpl-boldhead .r-role{font-size:13.5px;color:var(--r-accent, var(--accent));margin-top:9px;font-weight:600;text-transform:uppercase;letter-spacing:1px;}
+.tpl-boldhead .r-contact{font-size:11.5px;color:#888;margin-top:10px;}
+.tpl-boldhead .r-section{margin-bottom:18px;}
+.tpl-boldhead .r-sec-title{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#1a1a1a;margin-bottom:10px;}
+.tpl-boldhead .r-item{margin-bottom:12px;}
+.tpl-boldhead .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#161616;}
+.tpl-boldhead .r-item-sub{font-size:11.5px;color:#888;margin-top:1px;}
+.tpl-boldhead .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
+.tpl-boldhead .r-skills{font-size:12.5px;line-height:1.8;}
+
+.r-sep{color:#AAA;margin:0 6px;}
+
+/* ---------- Print ---------- */
+@media print{
+  body *{visibility:hidden;}
+  .paper,.paper *{visibility:visible;}
+  .paper{position:absolute;left:0;top:0;width:100%;box-shadow:none;}
+  @page{margin:0;size:auto;}
+}
+
+/* ---------- Toast ---------- */
+.toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--ink);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;
+  opacity:0;pointer-events:none;transition:opacity .2s ease, transform .2s ease;z-index:100;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+::-webkit-scrollbar{width:9px;}
+::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:6px;}
+
+/* ---------- Auth screen ---------- */
+.auth-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(168,62,44,0.10), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(27,37,64,0.10), transparent 40%),
+    var(--paper);
+  padding:20px;
+}
+.auth-card{
+  width:380px;background:var(--white);border:1px solid var(--line);border-radius:16px;
+  padding:36px 32px;box-shadow:0 20px 50px rgba(20,20,30,0.14);
+}
+.auth-logo{
+  width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,var(--accent),#C9573D);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-display);
+  font-weight:600;font-size:22px;color:#fff;margin-bottom:16px;box-shadow:0 4px 12px rgba(168,62,44,0.3);
+}
+.auth-brand{font-family:var(--font-display);font-size:27px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+.auth-tag{font-family:var(--font-ui);font-size:13px;color:var(--text-muted);margin-bottom:26px;}
+.auth-toggle{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#F3F3F1;}
+.auth-toggle button{flex:1;padding:9px;border:none;background:transparent;font-size:13px;font-weight:500;color:var(--text-muted);cursor:pointer;transition:background .15s ease,color .15s ease;}
+.auth-toggle button.active{background:var(--ink);color:#fff;}
+.auth-error{font-size:12.5px;color:var(--accent);margin-bottom:10px;min-height:16px;}
+.auth-submit{width:100%;padding:12px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer;margin-top:6px;transition:background .15s ease,transform .1s ease;}
+.auth-submit:hover{background:#8F3423;}
+.auth-submit:active{transform:scale(0.98);}
+.auth-submit:disabled{opacity:0.6;cursor:default;}
+
+/* ---------- Paywall modal ---------- */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(20,20,30,0.45);display:flex;align-items:center;justify-content:center;z-index:200;
+}
+.modal-card{
+  width:360px;background:var(--white);border-radius:14px;padding:28px 26px;text-align:center;
+}
+.modal-card h3{font-family:var(--font-display);font-size:20px;margin:0 0 8px;color:var(--ink);}
+.modal-card p{font-size:13.5px;color:var(--text-muted);line-height:1.5;margin:0 0 18px;}
+.modal-price{font-family:var(--font-display);font-size:30px;color:var(--accent);font-weight:600;margin-bottom:18px;}
+.modal-price span{font-size:13px;color:var(--text-muted);font-family:var(--font-ui);}
+
+/* ---------- Dashboard ---------- */
+.dash-screen{min-height:100vh;background:var(--paper);}
+.dash-wrap{max-width:1000px;margin:0 auto;padding:40px 28px 80px;}
+.dash-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;flex-wrap:wrap;gap:14px;}
+.dash-title{font-family:var(--font-display);font-size:28px;font-weight:600;color:var(--ink);}
+.dash-sub{font-size:13.5px;color:var(--text-muted);margin-top:4px;}
+.btn-primary-sm{background:var(--accent);color:#fff;border:none;padding:11px 18px;border-radius:8px;font-weight:600;font-size:13.5px;cursor:pointer;transition:background .15s;}
+.btn-primary-sm:hover{background:#8F3423;}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.dash-card{
+  background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;
+  transition:transform .12s ease,box-shadow .15s ease;position:relative;
+}
+.dash-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(20,20,30,0.1);}
+.dash-card-title{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--ink);margin-bottom:4px;padding-right:26px;}
+.dash-card-meta{font-size:11.5px;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:14px;}
+.dash-card-actions{display:flex;gap:12px;}
+.dash-card-actions button{background:none;border:none;font-size:12px;color:var(--ink-soft);cursor:pointer;font-weight:500;padding:0;}
+.dash-card-actions button:hover{color:var(--accent);text-decoration:underline;}
+.dash-empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-muted);font-size:14px;}
+.dash-search-row{margin-bottom:18px;}
+.dash-search{
+  width:100%;max-width:340px;padding:10px 14px;border:1px solid var(--line-strong);border-radius:8px;
+  font-family:var(--font-ui);font-size:13.5px;background:#fff;
+}
+.dash-search:focus{outline:none;border-color:var(--accent);}
+
+/* ---------- ATS view modal ---------- */
+.ats-modal{max-width:640px;width:92%;max-height:80vh;overflow-y:auto;text-align:left;}
+
+/* ---------- Synonym sidebar ---------- */
+.synonym-sidebar{
+  position:fixed;top:0;right:0;bottom:0;width:320px;background:#fff;box-shadow:-8px 0 24px rgba(20,20,30,0.15);
+  z-index:150;transform:translateX(100%);transition:transform .22s ease;display:flex;flex-direction:column;
+}
+.synonym-sidebar.open{transform:translateX(0);}
+.syn-head{padding:20px 20px 14px;border-bottom:1px solid var(--line);}
+.syn-head h3{font-family:var(--font-display);font-size:18px;font-weight:600;color:var(--ink);margin-bottom:10px;}
+.syn-search-row{display:flex;gap:6px;}
+.syn-search-row input{flex:1;padding:9px 11px;border:1px solid var(--line-strong);border-radius:7px;font-size:13.5px;}
+.syn-search-row button{background:var(--accent);color:#fff;border:none;border-radius:7px;padding:0 14px;font-size:13px;font-weight:600;cursor:pointer;}
+.syn-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;line-height:1;}
+.syn-body{flex:1;overflow-y:auto;padding:16px 20px;}
+.syn-hint{font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.5;}
+.syn-chip-wrap{display:flex;flex-wrap:wrap;gap:7px;}
+.syn-overlay-bg{position:fixed;inset:0;background:rgba(20,20,30,0.25);z-index:149;display:none;}
+.syn-overlay-bg.open{display:block;}
+.ats-modal h3{margin-bottom:6px;}
+.ats-modal p{margin-bottom:16px;}
+.ats-text{
+  background:#F6F6F4;border:1px solid var(--line);border-radius:8px;padding:16px;
+  font-family:var(--font-mono);font-size:12.5px;line-height:1.7;white-space:pre-wrap;color:#222;
+  max-height:50vh;overflow-y:auto;text-align:left;
+}
+.verb-chip{
+  background:#fff;border:1px solid var(--line-strong);border-radius:14px;padding:5px 12px;
+  font-size:12px;color:var(--ink-soft);cursor:pointer;font-weight:500;transition:all .12s ease;
+}
+.verb-chip:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-screen" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo">F</div>
+    <div class="auth-brand">Faircopy</div>
+    <div class="auth-tag">Build a resume that reads well and looks better.</div>
+    <div class="auth-toggle">
+      <button id="tabSignIn" class="active">Log in</button>
+      <button id="tabSignUp">Sign up</button>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="authEmail" placeholder="name@email.com"></div>
+    <div class="field"><label>Password</label><input type="password" id="authPassword" placeholder="At least 6 characters"></div>
+    <div class="auth-error" id="authError"></div>
+    <button class="auth-submit" id="authSubmit">Log in</button>
+  </div>
+</div>
+
+<div id="dashboardScreen" class="dash-screen" style="display:none;">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo-mark">F</div>
+      <div>
+        <div class="brand-mark">Faircopy</div>
+        <div class="brand-tag">Your resumes</div>
+      </div>
+    </div>
+    <div class="actions">
+      <span id="dashUserEmail" style="font-size:12px;color:#AEB6CC;margin-right:4px;"></span>
+      <button class="btn btn-ghost" id="btnLogoutDash" title="Log out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+    </div>
+  </div>
+  <div class="dash-wrap">
+    <div class="dash-head">
+      <div>
+        <div class="dash-title">Your resumes</div>
+        <div class="dash-sub" id="dashSub">Keep a separate, tailored version for each role you're applying to.</div>
+      </div>
+      <button class="btn-primary-sm" id="btnCreateResume">+ New resume</button>
+    </div>
+    <div class="dash-search-row">
+      <input type="text" id="dashSearch" class="dash-search" placeholder="Search your resumes by name…">
+    </div>
+    <div class="dash-grid" id="dashGrid"></div>
+  </div>
+</div>
+
+<div id="appScreen" class="app" style="display:none;">
+
+  <div class="topbar">
+    <div class="brand">
+      <button class="btn btn-ghost" id="btnBackDash" title="Back to your resumes" style="margin-right:2px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="logo-mark">F</div>
+      <div>
+        <div class="brand-mark" id="editorResumeTitle">Faircopy</div>
+        <div class="brand-tag">Resume Builder</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="btnAtsView" title="See what an ATS scanner reads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>ATS view</button>
+      <button class="btn" id="btnWritingCheck" title="Free rule-based writing check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Writing check</button>
+      <button class="btn" id="btnResumeScore" title="Free completeness &amp; quality score"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Score</button>
+      <button class="btn" id="btnVerbBank" title="Browse strong action verbs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 4.5A2.5 2.5 0 016.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15z"/></svg>Verbs</button>
+      <button class="btn" id="btnSynonyms" title="Free synonym lookup while you write"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>Synonyms</button>
+      <button class="btn" id="btnExportJson" title="Download data as JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16"/></svg>Export</button>
+      <button class="btn" id="btnImportJson" title="Load data from a JSON file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15V3m0 0l-4 4m4-4l4 4M4 19h16"/></svg>Import</button>
+      <button class="btn btn-accent" id="btnPdf" title="Download as PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M9 13h6M9 17h6"/></svg>Download PDF</button>
+      <span id="userEmail" style="font-size:12px;color:#AEB6CC;margin-left:6px;"></span>
+      <button class="btn btn-ghost" id="btnLogout" title="Log out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+    </div>
+  </div>
+
+  <div class="workspace">
+    <div class="form-pane" id="formPane"></div>
+    <div class="preview-pane">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;width:816px;max-width:100%;margin-bottom:0;flex-wrap:wrap;gap:14px;">
+        <div>
+          <div class="template-tabs" id="templateTabs"></div>
+          <div class="theme-swatches" id="themeSwatches"></div>
+        </div>
+        <div class="auth-toggle" id="pageLengthToggle" style="width:220px;margin-bottom:12px;"></div>
+      </div>
+      <div class="paper-shell"><div class="paper"><div class="resume-doc" id="preview"></div><div class="watermark-overlay" id="watermarkOverlay"></div></div></div>
+    </div>
+  </div>
+
+</div>
+
+<input type="file" id="fileInput" accept="application/json" style="display:none;">
+
+<div class="syn-overlay-bg" id="synOverlayBg"></div>
+<div class="synonym-sidebar" id="synonymSidebar">
+  <div class="syn-head">
+    <button class="syn-close" id="synClose">&times;</button>
+    <h3>Synonyms</h3>
+    <div class="syn-search-row">
+      <input type="text" id="synInput" placeholder="Type a word…">
+      <button type="button" id="synGo">Find</button>
+    </div>
+  </div>
+  <div class="syn-body" id="synBody">
+    <div class="syn-hint">Type a word you'd like a stronger alternative for — works for any word, not just resume terms. Free lookup, powered by Datamuse, no account needed.</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- Supabase ---------------- */
+const SUPABASE_URL = 'https://hdcpgxipiwwmycuipclx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_a7fO6ipaF7CuEMUJkZLXhQ_wja_m4fB';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null;
+let currentResumeId = null;
+let isSubscribed = false;
+let saveTimer = null;
+
+/* ---------------- State ---------------- */
+let data = {
+  personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',careerStage:'experienced',photo:''},
+  theme:'#A83E2C',
+  summary:'',
+  experience:[],
+  education:[],
+  skills:'',
+  learning:'',
+  projects:[],
+  awards:[],
+  certifications:[]
+};
+let template = 'classic';
+let pageMode = 'multi'; // 'one' or 'multi'
+const THEMES = [
+  ['#A83E2C','Sealing wax'],
+  ['#1B2540','Ink navy'],
+  ['#2F6B4F','Forest'],
+  ['#1F6E78','Teal'],
+  ['#6B3F72','Plum'],
+  ['#8A5A1E','Amber'],
+  ['#B23A5E','Rose'],
+  ['#33363F','Charcoal']
+];
+let openSections = {personal:true, summary:true, experience:true, education:false, skills:false, projects:false, awards:false, certifications:false};
+
+function uid(){ return 'id'+Math.random().toString(36).slice(2,9); }
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/* ---------------- Field config ---------------- */
+const personalFields = [
+  ['name','Full name','e.g. Priya Sharma',true],
+  ['title','Headline / target role','e.g. Senior HR Business Partner',false],
+  ['email','Email','name@email.com',true],
+  ['phone','Phone','+91 98xxxxxxx',true],
+  ['location','City','e.g. New Delhi',false],
+  ['country','Country','',false],
+  ['linkedin','LinkedIn URL','linkedin.com/in/you',false],
+  ['website','Portfolio / website','optional',false]
+];
+let touchedFields = new Set();
+let addressExpanded = false;
+const COUNTRIES = ["India","United States","United Arab Emirates","United Kingdom","Canada","Australia","Singapore","Germany","France","Netherlands","Ireland","Switzerland","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","New Zealand","South Africa","Japan","China","Hong Kong","South Korea","Malaysia","Indonesia","Philippines","Thailand","Vietnam","Pakistan","Bangladesh","Sri Lanka","Nepal","Italy","Spain","Portugal","Sweden","Norway","Denmark","Finland","Belgium","Austria","Poland","Israel","Turkey","Egypt","Nigeria","Kenya","Brazil","Mexico","Argentina","Chile","Colombia","Russia","Other"];
+const STAGE_LABELS = {fresher:'Fresher',intern:'Intern',experienced:'Experienced'};
+const STAGE_SECTION_TITLE = {fresher:'Internships & training',intern:'Internship experience',experienced:'Work experience'};
+
+function avatarHeaderHtml(){
+  const p = data.personal;
+  const initial = (p.name||'').trim().charAt(0).toUpperCase() || '';
+  const photoBlock = p.photo
+    ? `<img src="${p.photo}" alt="Profile photo">`
+    : `<div class="avatar-placeholder">${initial || `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`}</div>`;
+  return `
+    <div class="avatar-header">
+      <div class="avatar-circle">
+        ${photoBlock}
+        <div class="avatar-camera" id="btnUploadPhoto" title="${p.photo?'Change photo':'Add a photo'}">
+          <svg viewBox="0 0 24 24"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>
+        </div>
+      </div>
+      <div class="avatar-info">
+        <div class="avatar-name">${escHtml(p.name)||'Add your name below'}</div>
+        <div class="avatar-hint">${p.photo?'Photo added — shown on your resume':"Optional — many US/UK resumes skip a photo"}</div>
+        ${p.photo?`<button type="button" class="avatar-remove" id="btnRemovePhoto">Remove photo</button>`:''}
+      </div>
+      <input type="file" id="photoInput" accept="image/*" style="display:none;">
+    </div>`;
+}
+
+/* ---------------- Render form ---------------- */
+function renderForm(){
+  const pane = document.getElementById('formPane');
+  const expTitle = STAGE_SECTION_TITLE[data.personal.careerStage] || 'Experience';
+  pane.innerHTML = `
+    ${avatarHeaderHtml()}
+    ${sectionWrap('personal','Personal details','Who you are', careerStageHtml() + personalFieldsHtml())}
+    ${sectionWrap('summary','Summary','One or two sentences', summaryHtml())}
+    ${sectionWrap('experience',expTitle,'Most recent first', listHtml('experience'))}
+    ${sectionWrap('education','Education','Degrees and courses', listHtml('education'))}
+    ${sectionWrap('skills','Skills','Comma separated', skillsHtml())}
+    ${sectionWrap('projects','Projects','Optional', listHtml('projects'))}
+    ${sectionWrap('awards','Awards & achievements','Optional', listHtml('awards'))}
+    ${sectionWrap('certifications','Certifications & training','Optional', listHtml('certifications'))}
+  `;
+  attachFormEvents();
+}
+
+function careerStageHtml(){
+  const stage = data.personal.careerStage || 'experienced';
+  return `<div class="field">
+    <label>Career stage</label>
+    <div class="auth-toggle" style="margin-bottom:0;">
+      ${Object.keys(STAGE_LABELS).map(k=>`<button type="button" data-stage="${k}" class="${stage===k?'active':''}">${STAGE_LABELS[k]}</button>`).join('')}
+    </div>
+  </div>`;
+}
+
+function sectionWrap(key,title,sub,body){
+  const collapsed = openSections[key] ? '' : 'collapsed';
+  return `<div class="section ${collapsed}" data-key="${key}">
+    <div class="section-head" data-toggle="${key}">
+      <div><div class="section-title">${title}</div><div class="section-sub">${sub}</div></div>
+      <div class="chevron">&#9660;</div>
+    </div>
+    <div class="section-body">${body}</div>
+  </div>`;
+}
+
+function personalFieldsHtml(){
+  const main = personalFields.map(([key,label,ph,required])=>{
+    const val = data.personal[key] || '';
+    const isTouched = touchedFields.has(key);
+    const isEmpty = required && !val.trim();
+    const badFormat = key==='email' && val.trim() && !EMAIL_RE.test(val);
+    const showError = isTouched && (isEmpty || badFormat);
+    const errorMsg = isEmpty ? 'This field is required.' : (badFormat ? "That doesn't look like a valid email address." : '');
+    if(key==='country'){
+      return `<div class="field">
+        <label>${label}</label>
+        <select data-personal="country">
+          <option value="">Select a country</option>
+          ${COUNTRIES.map(c=>`<option value="${escAttr(c)}" ${val===c?'selected':''}>${escHtml(c)}</option>`).join('')}
+        </select>
+      </div>`;
+    }
+    return `<div class="field">
+      <label>${label}${required?' <span style="color:var(--accent);">*</span>':''}</label>
+      <input type="${key==='email'?'email':'text'}" data-personal="${key}" data-required="${required?'1':'0'}" placeholder="${ph}" value="${escAttr(val)}" style="${showError?'border-color:var(--accent);background:#FDF3F1;':''}">
+      ${showError?`<div style="font-size:11.5px;color:var(--accent);margin-top:4px;">${errorMsg}</div>`:''}
+    </div>`;
+  }).join('');
+
+  const hasExtra = data.personal.address || data.personal.state || data.personal.postal;
+  const expanded = addressExpanded || hasExtra;
+  const addressExtra = expanded ? `
+    <div class="row2">
+      <div class="field"><label>State / Province</label><input type="text" data-personal="state" placeholder="e.g. Delhi" value="${escAttr(data.personal.state)}"></div>
+      <div class="field"><label>Postal / ZIP code</label><input type="text" data-personal="postal" placeholder="e.g. 110001" value="${escAttr(data.personal.postal)}"></div>
+    </div>
+    <div class="field"><label>Street / area (optional)</label><input type="text" data-personal="address" placeholder="e.g. Sector 21, MG Road" value="${escAttr(data.personal.address)}"></div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:-6px;margin-bottom:10px;">Tip: most people leave the street address off a resume for privacy — city, state, and country are usually enough.</div>
+  ` : `<button type="button" id="btnExpandAddress" class="add-btn" style="margin-bottom:12px;">+ Add more address details</button>`;
+
+  return main + addressExtra;
+}
+
+function summaryHtml(){
+  return `<div class="field">
+    <label>Professional summary</label>
+    <textarea data-summary placeholder="A short pitch: your experience, strengths, and what you're looking for.">${escHtml(data.summary)}</textarea>
+  </div>`;
+}
+
+function skillsHtml(){
+  return `<div class="field">
+    <label>Skills</label>
+    <textarea data-skills placeholder="Stakeholder management, HR analytics, Power BI, Employee relations...">${escHtml(data.skills)}</textarea>
+  </div>
+  <div class="field">
+    <label>Currently learning (optional)</label>
+    <textarea data-learning placeholder="e.g. Advanced Power BI, SHRM-CP certification...">${escHtml(data.learning)}</textarea>
+  </div>`;
+}
+
+function listHtml(key){
+  const items = data[key];
+  const configs = {
+    experience:[['company','Company'],['role','Job title'],['location','Location'],['start','Start date'],['end','End date']],
+    education:[['school','School / institute'],['degree','Degree'],['field','Field of study'],['start','Start date'],['end','End date']],
+    projects:[['name','Project name'],['link','Link']],
+    awards:[['title','Award / achievement'],['issuer','Given by'],['date','Date']],
+    certifications:[['name','Certification name'],['issuer','Issuing organization'],['date','Date']]
+  };
+  const fields = configs[key];
+  let html = items.map((item,idx)=>{
+    let fieldsHtml = fields.map(([f,label])=>`
+      <div class="field"><label>${label}</label>
+      <input type="text" data-list="${key}" data-idx="${idx}" data-field="${f}" value="${escAttr(item[f]||'')}"></div>
+    `).join('');
+    let extra = '';
+    if(key==='experience'){
+      extra = `<div class="checkbox-row"><input type="checkbox" data-list="${key}" data-idx="${idx}" data-field="current" ${item.current?'checked':''}> Currently working here</div>
+      <div class="field"><label>Achievements / responsibilities (one per line)</label>
+      <textarea data-list="${key}" data-idx="${idx}" data-field="bullets" placeholder="Led a team of 8 recruiters...&#10;Reduced attrition by 12% through...">${escHtml(item.bullets||'')}</textarea></div>`;
+    }
+    if(key==='education'){
+      extra = `<div class="field"><label>GPA / grade (optional)</label>
+      <input type="text" data-list="${key}" data-idx="${idx}" data-field="gpa" value="${escAttr(item.gpa||'')}"></div>`;
+    }
+    if(key==='projects'){
+      extra = `<div class="field"><label>Description</label>
+      <textarea data-list="${key}" data-idx="${idx}" data-field="description" placeholder="What it does and your role.">${escHtml(item.description||'')}</textarea></div>`;
+    }
+    if(key==='awards'){
+      extra = `<div class="field"><label>Description (optional)</label>
+      <textarea data-list="${key}" data-idx="${idx}" data-field="description" placeholder="A line of context, if useful.">${escHtml(item.description||'')}</textarea></div>`;
+    }
+    return `<div class="entry-card" data-entry="${key}-${idx}">
+      <button class="entry-remove" data-remove="${key}" data-idx="${idx}" aria-label="Remove entry">&times;</button>
+      ${fieldsHtml}${extra}
+    </div>`;
+  }).join('');
+  const labels = {experience:'Add experience',education:'Add education',projects:'Add project',awards:'Add award',certifications:'Add certification'};
+  html += `<button class="add-btn" data-add="${key}">+ ${labels[key]}</button>`;
+  return html;
+}
+
+/* ---------------- Escaping ---------------- */
+function escHtml(s){ return (s||'').replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function escAttr(s){ return (s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------------- Form events ---------------- */
+function attachFormEvents(){
+  const pane = document.getElementById('formPane');
+
+  pane.querySelectorAll('[data-toggle]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const key = el.getAttribute('data-toggle');
+      openSections[key] = !openSections[key];
+      renderForm();
+    });
+  });
+
+  pane.querySelectorAll('[data-stage]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      data.personal.careerStage = el.getAttribute('data-stage');
+      renderForm(); renderPreview(); scheduleSave();
+    });
+  });
+
+  const expandBtn = pane.querySelector('#btnExpandAddress');
+  if(expandBtn) expandBtn.addEventListener('click', ()=>{ addressExpanded = true; renderForm(); });
+
+  const photoInput = pane.querySelector('#photoInput');
+  const uploadBtn = pane.querySelector('#btnUploadPhoto');
+  if(uploadBtn) uploadBtn.addEventListener('click', ()=>photoInput.click());
+  if(photoInput) photoInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    if(file.size > 2*1024*1024){ showToast('Please choose an image under 2MB.'); return; }
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      data.personal.photo = reader.result;
+      renderForm(); renderPreview(); scheduleSave();
+    };
+    reader.readAsDataURL(file);
+  });
+  const removeBtn = pane.querySelector('#btnRemovePhoto');
+  if(removeBtn) removeBtn.addEventListener('click', ()=>{
+    data.personal.photo = '';
+    renderForm(); renderPreview(); scheduleSave();
+  });
+
+  pane.querySelectorAll('[data-personal]').forEach(el=>{
+    el.addEventListener('input',()=>{
+      data.personal[el.getAttribute('data-personal')] = el.value;
+      renderPreview(); scheduleSave();
+    });
+    el.addEventListener('blur', ()=>{
+      touchedFields.add(el.getAttribute('data-personal'));
+      renderForm();
+    });
+  });
+
+  const summaryEl = pane.querySelector('[data-summary]');
+  if(summaryEl) summaryEl.addEventListener('input',()=>{ data.summary = summaryEl.value; renderPreview(); scheduleSave(); });
+
+  const skillsEl = pane.querySelector('[data-skills]');
+  if(skillsEl) skillsEl.addEventListener('input',()=>{ data.skills = skillsEl.value; renderPreview(); scheduleSave(); });
+
+  const learningEl = pane.querySelector('[data-learning]');
+  if(learningEl) learningEl.addEventListener('input',()=>{ data.learning = learningEl.value; renderPreview(); scheduleSave(); });
+
+  pane.querySelectorAll('[data-list]').forEach(el=>{
+    const key = el.getAttribute('data-list');
+    const idx = parseInt(el.getAttribute('data-idx'));
+    const field = el.getAttribute('data-field');
+    const evt = el.type === 'checkbox' ? 'change' : 'input';
+    el.addEventListener(evt,()=>{
+      const val = el.type === 'checkbox' ? el.checked : el.value;
+      data[key][idx][field] = val;
+      renderPreview(); scheduleSave();
+    });
+  });
+
+  pane.querySelectorAll('[data-add]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const key = el.getAttribute('data-add');
+      const blanks = {
+        experience:{id:uid(),company:'',role:'',location:'',start:'',end:'',current:false,bullets:''},
+        education:{id:uid(),school:'',degree:'',field:'',start:'',end:'',gpa:''},
+        projects:{id:uid(),name:'',link:'',description:''},
+        awards:{id:uid(),title:'',issuer:'',date:'',description:''},
+        certifications:{id:uid(),name:'',issuer:'',date:''}
+      };
+      data[key].push(blanks[key]);
+      openSections[key] = true;
+      renderForm();
+      renderPreview(); scheduleSave();
+    });
+  });
+
+  pane.querySelectorAll('[data-remove]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const key = el.getAttribute('data-remove');
+      const idx = parseInt(el.getAttribute('data-idx'));
+      data[key].splice(idx,1);
+      renderForm();
+      renderPreview(); scheduleSave();
+    });
+  });
+}
+
+/* ---------------- Template tabs ---------------- */
+function renderTabs(){
+  const tabs = [
+    ['classic','Classic', ['dark55','line35','accent20','line90']],
+    ['modern','Modern', ['block','dark65','accent40','line90']],
+    ['minimal','Minimal', ['dark45','accent25','line90','line70']],
+    ['executive','Executive', ['dot','dark70','accent45','line90']],
+    ['compact','Compact', ['dark40','line30','line95','line88']],
+    ['timeline','Timeline', ['dot','dark60','accent30','dot']],
+    ['panel','Panel', ['band','dark50','line85','line70']],
+    ['boxed','Boxed', ['dark50','accent35','line80','line85']],
+    ['split','Split', ['block','dark60','line85','line75']],
+    ['banner','Banner', ['band','dot','accent25','line80']],
+    ['infographic','Infographic', ['block','accent40','accent30','accent20']],
+    ['letterhead','Letterhead', ['dot','dark45','accent20','line85']],
+    ['gridtpl','Grid', ['dark55','line35','accent20','accent15']],
+    ['ribbon','Ribbon', ['block','dark50','accent25','line85']],
+    ['tech','Tech', ['dark40','accent35','line80','line75']],
+    ['balanced','Balanced', ['dark50','accent20','line80','line80']],
+    ['boldhead','Bold Header', ['dark70','accent15','line85','line75']]
+  ];
+  document.getElementById('templateTabs').innerHTML = tabs.map(([key,label,bars])=>`
+    <button class="tpl-pick ${template===key?'active':''}" data-tpl="${key}" title="${label}">
+      <span class="tpl-pick-mock">${bars.map(b=>{
+        if(b==='block') return `<span class="pm-block"></span>`;
+        if(b==='dot') return `<span class="pm-dot"></span>`;
+        if(b==='band') return `<span class="pm-band"></span>`;
+        const [type,w] = [b.replace(/[0-9]/g,''), b.replace(/[a-z]/g,'')];
+        return `<span class="pm-line ${type}" style="width:${w}%;"></span>`;
+      }).join('')}</span>
+      <span class="tpl-pick-label">${label}</span>
+    </button>
+  `).join('');
+  document.querySelectorAll('[data-tpl]').forEach(el=>{
+    el.addEventListener('click',()=>{ template = el.getAttribute('data-tpl'); renderTabs(); renderPreview(); scheduleSave(); });
+  });
+
+  const swatchBox = document.getElementById('themeSwatches');
+  if(swatchBox){
+    const presetHexes = THEMES.map(t=>t[0]);
+    const isCustom = !presetHexes.includes(data.theme);
+    swatchBox.innerHTML = THEMES.map(([hex,name])=>
+      `<button type="button" class="theme-swatch ${data.theme===hex?'active':''}" data-theme="${hex}" style="background:${hex};" title="${name}"></button>`
+    ).join('') + `
+      <label class="theme-swatch custom-swatch ${isCustom?'active':''}" title="Pick any color" style="${isCustom?`background:${data.theme};`:''}">
+        ${isCustom?'':'<span class="custom-swatch-plus">+</span>'}
+        <input type="color" id="customColorInput" value="${isCustom?data.theme:'#A83E2C'}">
+      </label>`;
+    swatchBox.querySelectorAll('[data-theme]').forEach(el=>{
+      el.addEventListener('click',()=>{ data.theme = el.getAttribute('data-theme'); renderTabs(); renderPreview(); scheduleSave(); });
+    });
+    const customInput = document.getElementById('customColorInput');
+    if(customInput){
+      customInput.addEventListener('input', ()=>{
+        data.theme = customInput.value;
+        document.getElementById('preview').style.setProperty('--r-accent', data.theme);
+      });
+      customInput.addEventListener('change', ()=>{ renderTabs(); renderPreview(); scheduleSave(); });
+    }
+  }
+
+  const pageToggle = document.getElementById('pageLengthToggle');
+  if(pageToggle){
+    pageToggle.innerHTML = `
+      <button type="button" data-page="one" class="${pageMode==='one'?'active':''}">One page</button>
+      <button type="button" data-page="multi" class="${pageMode==='multi'?'active':''}">Multiple pages</button>
+    `;
+    pageToggle.querySelectorAll('[data-page]').forEach(el=>{
+      el.addEventListener('click',()=>{ pageMode = el.getAttribute('data-page'); renderTabs(); renderPreview(); scheduleSave(); });
+    });
+  }
+}
+
+
+/* ---------------- Preview rendering ---------------- */
+function hasAnyContent(){
+  return data.personal.name || data.summary || filledExperience().length || filledEducation().length || data.skills || filledProjects().length || filledAwards().length || filledCertifications().length;
+}
+
+function bulletsToLi(text){
+  return (text||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>`<li>${escHtml(l)}</li>`).join('');
+}
+
+function contactLine(sep){
+  const p = data.personal;
+  return [p.email,p.phone,formatAddress(),p.linkedin,p.website].filter(Boolean).map(escHtml).join(` ${sep} `);
+}
+function formatAddress(){
+  const p = data.personal;
+  return [p.address,p.location,p.state,p.postal,p.country].map(x=>(x||'').trim()).filter(Boolean).join(', ');
+}
+
+function notBlank(item, keys){ return keys.some(k => (item[k]||'').toString().trim()); }
+function filledExperience(){ return data.experience.filter(x=>notBlank(x,['company','role','bullets'])); }
+function filledEducation(){ return data.education.filter(x=>notBlank(x,['school','degree','field'])); }
+function filledProjects(){ return data.projects.filter(x=>notBlank(x,['name','description'])); }
+function filledAwards(){ return data.awards.filter(x=>notBlank(x,['title','issuer'])); }
+function filledCertifications(){ return data.certifications.filter(x=>notBlank(x,['name','issuer'])); }
+
+function renderPreview(){
+  const el = document.getElementById('preview');
+  const paper = document.querySelector('.paper');
+  if(!hasAnyContent()){
+    el.className = 'resume-doc';
+    el.style.transform = ''; el.style.width = '';
+    paper.style.height = 'auto'; paper.style.overflow = 'visible';
+    paper.classList.remove('locked');
+    el.innerHTML = `<div class="empty-hint">Fill in your details on the left — your resume will take shape here.</div>`;
+    return;
+  }
+  el.className = 'resume-doc tpl-' + template;
+  el.style.setProperty('--r-accent', data.theme || '#A83E2C');
+  if(template === 'classic') el.innerHTML = renderClassic();
+  else if(template === 'modern') el.innerHTML = renderModern();
+  else if(template === 'executive') el.innerHTML = renderExecutive();
+  else if(template === 'compact') el.innerHTML = renderCompact();
+  else if(template === 'timeline') el.innerHTML = renderTimeline();
+  else if(template === 'panel') el.innerHTML = renderPanel();
+  else if(template === 'boxed') el.innerHTML = renderBoxed();
+  else if(template === 'split') el.innerHTML = renderSplit();
+  else if(template === 'banner') el.innerHTML = renderBanner();
+  else if(template === 'infographic') el.innerHTML = renderInfographic();
+  else if(template === 'letterhead') el.innerHTML = renderLetterhead();
+  else if(template === 'gridtpl') el.innerHTML = renderGridTpl();
+  else if(template === 'ribbon') el.innerHTML = renderRibbon();
+  else if(template === 'tech') el.innerHTML = renderTech();
+  else if(template === 'balanced') el.innerHTML = renderBalanced();
+  else if(template === 'boldhead') el.innerHTML = renderBoldHead();
+  else el.innerHTML = renderMinimal();
+  paper.classList.toggle('locked', !isSubscribed);
+  applyPageFit();
+}
+
+function applyPageFit(){
+  const paper = document.querySelector('.paper');
+  const el = document.getElementById('preview');
+  el.style.transform = ''; el.style.width = '';
+  if(pageMode !== 'one'){
+    paper.style.height = 'auto';
+    paper.style.overflow = 'visible';
+    return;
+  }
+  paper.style.height = '1056px';
+  paper.style.overflow = 'hidden';
+  requestAnimationFrame(()=>{
+    const natural = el.scrollHeight;
+    if(natural <= 1056) return;
+    let scale = Math.max(1056 / natural, 0.72);
+    el.style.transformOrigin = 'top left';
+    el.style.transform = `scale(${scale})`;
+    el.style.width = (100/scale) + '%';
+    if(scale <= 0.72 && natural / scale > 1056 / 0.72 * 1.02){
+      showToast('This is a lot of content for one page — consider trimming, or switch to Multiple pages.');
+    }
+  });
+}
+
+function expBlock(){
+  return filledExperience().map(x=>`
+    <div class="r-item">
+      <div class="r-item-top"><span>${escHtml(x.role||'Role')}${x.company?' — '+escHtml(x.company):''}</span><span>${escHtml(x.start)}${x.start||x.end?' – ':''}${x.current?'Present':escHtml(x.end)}</span></div>
+      <div class="r-item-sub"><span>${escHtml(x.location||'')}</span></div>
+      <ul class="r-bullets">${bulletsToLi(x.bullets)}</ul>
+    </div>`).join('');
+}
+function eduBlockFull(){
+  return filledEducation().map(x=>`
+    <div class="r-item">
+      <div class="r-item-top"><span>${escHtml(x.degree||'')}${x.field?', '+escHtml(x.field):''}</span><span>${escHtml(x.start)}${x.start||x.end?' – ':''}${escHtml(x.end)}</span></div>
+      <div class="r-item-sub"><span>${escHtml(x.school||'')}${x.gpa?' · '+escHtml(x.gpa):''}</span></div>
+    </div>`).join('');
+}
+function projBlock(){
+  return filledProjects().map(x=>`
+    <div class="r-item">
+      <div class="r-item-top"><span>${escHtml(x.name||'')}</span><span>${escHtml(x.link||'')}</span></div>
+      <div class="r-item-sub">${escHtml(x.description||'')}</div>
+    </div>`).join('');
+}
+function awardBlock(){
+  return filledAwards().map(x=>`
+    <div class="r-item">
+      <div class="r-item-top"><span>${escHtml(x.title||'')}</span><span>${escHtml(x.date||'')}</span></div>
+      <div class="r-item-sub">${escHtml(x.issuer||'')}${x.description?' · '+escHtml(x.description):''}</div>
+    </div>`).join('');
+}
+function certBlock(){
+  return filledCertifications().map(x=>`
+    <div class="r-item">
+      <div class="r-item-top"><span>${escHtml(x.name||'')}</span><span>${escHtml(x.date||'')}</span></div>
+      <div class="r-item-sub">${escHtml(x.issuer||'')}</div>
+    </div>`).join('');
+}
+function skillsList(){ return (data.skills||'').split(',').map(s=>s.trim()).filter(Boolean); }
+function learningList(){ return (data.learning||'').split(',').map(s=>s.trim()).filter(Boolean); }
+
+function sectionOrder(){
+  return data.personal.careerStage === 'fresher'
+    ? ['summary','education','experience','projects','skills','learning','awards','certifications']
+    : ['summary','experience','education','projects','skills','learning','awards','certifications'];
+}
+function expSectionTitle(){ return STAGE_SECTION_TITLE[data.personal.careerStage] || 'Experience'; }
+
+function renderClassic(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications &amp; training</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header" style="${p.photo?'display:flex;align-items:center;gap:18px;text-align:left;':''}">
+      ${p.photo?`<img src="${p.photo}" style="width:78px;height:78px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:''}
+      <div style="${p.photo?'flex:1;':''}">
+        <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+        ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+        <div class="r-contact">${contactLine('|')}</div>
+      </div>
+    </div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function renderModern(){
+  const p = data.personal;
+  return `
+    <div class="r-side">
+      ${p.photo?`<img src="${p.photo}" style="width:76px;height:76px;border-radius:50%;object-fit:cover;margin-bottom:14px;border:2px solid #3E4A6B;">`:''}
+      <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+      ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+      <div class="r-block">
+        <div class="r-block-title">Contact</div>
+        ${[p.email,p.phone,formatAddress(),p.linkedin,p.website].filter(Boolean).map(v=>`<div class="r-contact-line">${escHtml(v)}</div>`).join('')}
+      </div>
+      ${skillsList().length?`<div class="r-block"><div class="r-block-title">Skills</div>${skillsList().map(s=>`<span class="r-skill-tag">${escHtml(s)}</span>`).join('')}</div>`:''}
+      ${learningList().length?`<div class="r-block"><div class="r-block-title">Currently learning</div>${learningList().map(s=>`<span class="r-skill-tag">${escHtml(s)}</span>`).join('')}</div>`:''}
+      ${filledEducation().length?`<div class="r-block"><div class="r-block-title">Education</div>${filledEducation().map(x=>`<div class="r-edu-item"><b>${escHtml(x.degree||'')}</b>${escHtml(x.school||'')}${x.start||x.end?'<br>'+escHtml(x.start)+' – '+escHtml(x.end):''}</div>`).join('')}</div>`:''}
+      ${filledAwards().length?`<div class="r-block"><div class="r-block-title">Awards</div>${filledAwards().map(x=>`<div class="r-edu-item"><b>${escHtml(x.title||'')}</b>${escHtml(x.issuer||'')} ${escHtml(x.date||'')}</div>`).join('')}</div>`:''}
+      ${filledCertifications().length?`<div class="r-block"><div class="r-block-title">Certifications</div>${filledCertifications().map(x=>`<div class="r-edu-item"><b>${escHtml(x.name||'')}</b>${escHtml(x.issuer||'')} ${escHtml(x.date||'')}</div>`).join('')}</div>`:''}
+    </div>
+    <div class="r-main">
+      ${data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-summary">${escHtml(data.summary)}</div></div>`:''}
+      ${filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:''}
+      ${filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:''}
+    </div>
+  `;
+}
+
+function renderMinimal(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div>${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().map(s=>`<span>${escHtml(s)}</span>`).join('')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().map(s=>`<span>${escHtml(s)}</span>`).join('')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications &amp; training</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header" style="${p.photo?'display:flex;align-items:center;gap:16px;':''}">
+      ${p.photo?`<img src="${p.photo}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:''}
+      <div>
+        <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+        ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+        <div class="r-contact">${contactLine('·')}</div>
+      </div>
+    </div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function renderExecutive(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Profile</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Core skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently developing</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Key projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; honors</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header">
+      ${p.photo?`<img src="${p.photo}" class="r-photo">`:''}
+      <div>
+        <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+        ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+        <div class="r-contact">${contactLine('  |  ')}</div>
+      </div>
+    </div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function renderCompact(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(', ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(', ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header">
+      ${p.photo?`<img src="${p.photo}" class="r-photo">`:''}
+      <div>
+        <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+        ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+        <div class="r-contact">${contactLine('|')}</div>
+      </div>
+    </div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function renderTimeline(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header">
+      ${p.photo?`<img src="${p.photo}" class="r-photo">`:''}
+      <div>
+        <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+        ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+        <div class="r-contact">${contactLine('·')}</div>
+      </div>
+    </div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function renderPanel(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header">
+      ${p.photo?`<img src="${p.photo}" class="r-photo">`:''}
+      <div>
+        <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+        ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+        <div class="r-contact">${contactLine('|')}</div>
+      </div>
+    </div>
+    <div class="r-body">${sectionOrder().map(k=>blocks[k]).join('')}</div>
+  `;
+}
+
+function renderBoxed(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header" style="${p.photo?'display:flex;align-items:center;gap:16px;':''}">
+      ${p.photo?`<img src="${p.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:''}
+      <div>
+        <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+        ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+        <div class="r-contact">${contactLine('|')}</div>
+      </div>
+    </div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function renderSplit(){
+  const p = data.personal;
+  return `
+    <div class="r-side">
+      ${p.photo?`<img src="${p.photo}" class="r-photo">`:''}
+      <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+      ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+      ${[p.email,p.phone,formatAddress(),p.linkedin,p.website].filter(Boolean).map(v=>`<div class="r-contact-line">${escHtml(v)}</div>`).join('')}
+    </div>
+    <div class="r-main">
+      ${data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div>${escHtml(data.summary)}</div></div>`:''}
+      ${filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:''}
+      ${filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:''}
+      ${skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:''}
+      ${learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:''}
+      ${filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:''}
+      ${filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards</div>${awardBlock()}</div>`:''}
+      ${filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''}
+    </div>
+  `;
+}
+
+function renderBanner(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header">
+      ${p.photo?`<img src="${p.photo}" class="r-photo">`:''}
+      <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+      ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+      <div class="r-contact">${contactLine('  ·  ')}</div>
+    </div>
+    <div class="r-body">${sectionOrder().map(k=>blocks[k]).join('')}</div>
+  `;
+}
+
+function renderInfographic(){
+  const p = data.personal;
+  const initial = (p.name||'').trim().charAt(0).toUpperCase() || '';
+  return `
+    <div class="r-side">
+      ${p.photo?`<img src="${p.photo}" class="r-photo">`:''}
+      <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+      ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+      <div class="r-block">
+        <div class="r-block-title">Contact</div>
+        ${[p.email,p.phone,formatAddress(),p.linkedin,p.website].filter(Boolean).map(v=>`<div class="r-contact-line">${escHtml(v)}</div>`).join('')}
+      </div>
+      ${skillsList().length?`<div class="r-block"><div class="r-block-title">Skills</div>${skillsList().map(s=>`<div class="r-skill-bar"><div class="r-skill-bar-label">${escHtml(s)}</div><div class="r-skill-bar-track"><div class="r-skill-bar-fill"></div></div></div>`).join('')}</div>`:''}
+      ${filledEducation().length?`<div class="r-block"><div class="r-block-title">Education</div>${filledEducation().map(x=>`<div class="r-contact-line"><b>${escHtml(x.degree||'')}</b><br>${escHtml(x.school||'')}</div>`).join('')}</div>`:''}
+    </div>
+    <div class="r-main">
+      ${data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div>${escHtml(data.summary)}</div></div>`:''}
+      ${filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:''}
+      ${filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:''}
+      ${filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards</div>${awardBlock()}</div>`:''}
+      ${filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''}
+    </div>
+  `;
+}
+
+function renderLetterhead(){
+  const p = data.personal;
+  const initial = (p.name||'').trim().charAt(0).toUpperCase() || 'Y';
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Profile</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    ${p.photo?`<img src="${p.photo}" class="r-photo">`:`<div class="r-monogram">${initial}</div>`}
+    <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+    ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+    <div class="r-contact">${contactLine('  ·  ')}</div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function renderGridTpl(){
+  const p = data.personal;
+  const cardBlocks = [];
+  if(skillsList().length) cardBlocks.push(`<div class="r-grid-card"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(', ')}</div></div>`);
+  if(learningList().length) cardBlocks.push(`<div class="r-grid-card"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(', ')}</div></div>`);
+  if(filledCertifications().length) cardBlocks.push(`<div class="r-grid-card"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`);
+  if(filledAwards().length) cardBlocks.push(`<div class="r-grid-card"><div class="r-sec-title">Awards</div>${awardBlock()}</div>`);
+  return `
+    <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+    ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+    <div class="r-contact">${contactLine('|')}</div>
+    ${data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div>${escHtml(data.summary)}</div></div>`:''}
+    ${filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:''}
+    ${filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:''}
+    ${filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:''}
+    ${cardBlocks.length?`<div class="r-grid-wrap">${cardBlocks.join('')}</div>`:''}
+  `;
+}
+
+function renderRibbon(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header">
+      <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+      ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+      <div class="r-contact">${contactLine('|')}</div>
+    </div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function renderTech(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">about</div><div class="r-skills" style="font-family:var(--font-ui);background:none;border:none;padding:0;">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle().toLowerCase().replace(/ /g,'_')}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">currently_learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">awards</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header">
+      <div class="r-name">${escHtml(p.name)||'your_name'}</div>
+      ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+      <div class="r-contact">${contactLine(' · ')}</div>
+    </div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function renderBalanced(){
+  const p = data.personal;
+  const leftBlocks = [
+    data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div>${escHtml(data.summary)}</div></div>`:'',
+    filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:''
+  ].join('');
+  const rightBlocks = [
+    filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards</div>${awardBlock()}</div>`:'',
+    filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  ].join('');
+  return `
+    <div class="r-header">
+      <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+      ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+      <div class="r-contact">${contactLine('|')}</div>
+    </div>
+    <div class="r-col-left">${leftBlocks}</div>
+    <div class="r-col-right">${rightBlocks}</div>
+  `;
+}
+
+function renderBoldHead(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header">
+      <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+      ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+      <div class="r-contact">${contactLine('|')}</div>
+    </div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+/* ---------------- Toast ---------------- */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function requiredFieldsMissing(){
+  const p = data.personal;
+  const missing = [];
+  personalFields.forEach(([key,label,ph,required])=>{
+    if(required && !(p[key]||'').trim()) missing.push(key);
+  });
+  if(p.email && p.email.trim() && !EMAIL_RE.test(p.email)) missing.push('email');
+  return missing;
+}
+
+function normalizeData(d){
+  if(!d.theme) d.theme = '#A83E2C';
+  d.personal = d.personal || {};
+  if(!d.personal.careerStage) d.personal.careerStage = 'experienced';
+  if(!d.personal.country) d.personal.country = '';
+  if(!d.personal.state) d.personal.state = '';
+  if(!d.personal.postal) d.personal.postal = '';
+  if(!d.personal.address) d.personal.address = '';
+  if(!d.personal.photo) d.personal.photo = '';
+  d.summary = d.summary || '';
+  d.skills = d.skills || '';
+  d.learning = d.learning || '';
+  d.experience = d.experience || [];
+  d.education = d.education || [];
+  d.projects = d.projects || [];
+  d.awards = d.awards || [];
+  d.certifications = d.certifications || [];
+  return d;
+}
+
+/* ---------------- Cloud save / load (Supabase) ---------------- */
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveResume, 900);
+}
+async function saveResume(){
+  if(!currentUser || !currentResumeId) return;
+  try{
+    const { error } = await sb.from('resumes').update({
+      data: data,
+      template: template,
+      updated_at: new Date().toISOString()
+    }).eq('id', currentResumeId);
+    if(error){ showToast('Could not save — check your connection.'); console.error(error); }
+  }catch(e){ showToast('Could not save — check your connection.'); }
+}
+async function loadResume(){
+  if(!currentUser || !currentResumeId) return;
+  try{
+    let { data: row, error } = await sb.from('resumes').select('data,template,title').eq('id', currentResumeId).maybeSingle();
+    if(error){
+      // Older database schema without the 'title' column yet.
+      const retry = await sb.from('resumes').select('data,template').eq('id', currentResumeId).maybeSingle();
+      row = retry.data;
+    }
+    if(row){
+      data = row.data && Object.keys(row.data).length ? normalizeData(row.data) : data;
+      template = row.template || 'classic';
+      document.getElementById('editorResumeTitle').textContent = row.title || 'Untitled resume';
+      renderForm(); renderTabs(); renderPreview();
+    }
+  }catch(e){ /* new/blank resume — nothing saved yet, that's fine */ }
+}
+
+/* ---------------- Dashboard (multiple resumes per user) ---------------- */
+let allResumes = [];
+async function loadResumesList(){
+  const grid = document.getElementById('dashGrid');
+  grid.innerHTML = `<div class="dash-empty">Loading your resumes…</div>`;
+  try{
+    const { data: rows, error } = await sb.from('resumes')
+      .select('id,title,template,updated_at')
+      .eq('user_id', currentUser.id)
+      .order('updated_at', { ascending: false });
+    if(error) throw error;
+    allResumes = rows || [];
+    renderDashboard(allResumes);
+  }catch(e){
+    grid.innerHTML = `<div class="dash-empty">Couldn't load your resumes. Try refreshing.</div>`;
+  }
+}
+function relativeTime(iso){
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.round(diffMs/60000);
+  if(mins < 1) return 'just now';
+  if(mins < 60) return mins+'m ago';
+  const hrs = Math.round(mins/60);
+  if(hrs < 24) return hrs+'h ago';
+  const days = Math.round(hrs/24);
+  if(days < 30) return days+'d ago';
+  return new Date(iso).toLocaleDateString();
+}
+function renderDashboard(rows){
+  const grid = document.getElementById('dashGrid');
+  document.getElementById('dashUserEmail').textContent = currentUser.email || '';
+  const sub = document.getElementById('dashSub');
+  if(sub) sub.textContent = allResumes.length
+    ? `${allResumes.length} resume${allResumes.length===1?'':'s'} · keep a tailored version for each role you're applying to`
+    : "Keep a separate, tailored version for each role you're applying to.";
+  if(!rows.length){
+    const isSearching = document.getElementById('dashSearch') && document.getElementById('dashSearch').value.trim();
+    grid.innerHTML = isSearching
+      ? `<div class="dash-empty">No resumes match that search.</div>`
+      : `<div class="dash-empty">No resumes yet — click "+ New resume" to start your first one.</div>`;
+    return;
+  }
+  grid.innerHTML = rows.map(r=>`
+    <div class="dash-card" data-open="${r.id}">
+      <div class="dash-card-title">${escHtml(r.title||'Untitled resume')}</div>
+      <div class="dash-card-meta">${r.template||'classic'} · edited ${relativeTime(r.updated_at)}</div>
+      <div class="dash-card-actions">
+        <button data-dup="${r.id}">Duplicate</button>
+        <button data-rename="${r.id}" data-title="${escAttr(r.title||'')}">Rename</button>
+        <button data-del="${r.id}">Delete</button>
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('[data-open]').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      if(e.target.closest('button')) return;
+      openResume(el.getAttribute('data-open'));
+    });
+  });
+  grid.querySelectorAll('[data-dup]').forEach(el=>{
+    el.addEventListener('click', ()=>duplicateResume(el.getAttribute('data-dup')));
+  });
+  grid.querySelectorAll('[data-rename]').forEach(el=>{
+    el.addEventListener('click', ()=>renameResume(el.getAttribute('data-rename'), el.getAttribute('data-title')));
+  });
+  grid.querySelectorAll('[data-del]').forEach(el=>{
+    el.addEventListener('click', ()=>deleteResume(el.getAttribute('data-del')));
+  });
+}
+async function showDashboard(){
+  currentResumeId = null;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('dashboardScreen').style.display = 'block';
+  await loadResumesList();
+  const searchEl = document.getElementById('dashSearch');
+  if(searchEl){
+    searchEl.value = '';
+    searchEl.oninput = ()=>{
+      const q = searchEl.value.trim().toLowerCase();
+      const filtered = q ? allResumes.filter(r=>(r.title||'').toLowerCase().includes(q)) : allResumes;
+      renderDashboard(filtered);
+    };
+  }
+}
+async function createResume(){
+  const blank = {personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',careerStage:'experienced',photo:''},theme:'#A83E2C',summary:'',experience:[],education:[],skills:'',learning:'',projects:[],awards:[],certifications:[]};
+  try{
+    let { data: row, error } = await sb.from('resumes').insert({
+      user_id: currentUser.id, title: 'Untitled resume', data: blank, template: 'classic'
+    }).select().single();
+    if(error){
+      // Older database schema without the 'title' column yet — fall back so new accounts still work.
+      const retry = await sb.from('resumes').insert({
+        user_id: currentUser.id, data: blank, template: 'classic'
+      }).select().single();
+      if(retry.error) throw retry.error;
+      row = retry.data;
+    }
+    openResume(row.id);
+  }catch(e){ showToast('Could not create a new resume. Try again.'); console.error(e); }
+}
+async function openResume(id){
+  currentResumeId = id;
+  data = {personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',careerStage:'experienced',photo:''},theme:'#A83E2C',summary:'',experience:[],education:[],skills:'',learning:'',projects:[],awards:[],certifications:[]};
+  template = 'classic'; pageMode = 'multi'; addressExpanded = false; touchedFields = new Set();
+  document.getElementById('dashboardScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'flex';
+  renderForm(); renderTabs(); renderPreview();
+  await loadResume();
+  isSubscribed = await checkSubscription();
+  renderPreview();
+}
+async function duplicateResume(id){
+  try{
+    const { data: row, error } = await sb.from('resumes').select('title,data,template').eq('id', id).single();
+    if(error) throw error;
+    const { error: insErr } = await sb.from('resumes').insert({
+      user_id: currentUser.id, title: (row.title||'Untitled resume') + ' (copy)', data: row.data, template: row.template
+    });
+    if(insErr) throw insErr;
+    loadResumesList();
+    showToast('Duplicated.');
+  }catch(e){ showToast('Could not duplicate. Try again.'); }
+}
+async function renameResume(id, oldTitle){
+  const newTitle = prompt('Rename this resume:', oldTitle || '');
+  if(newTitle === null || !newTitle.trim()) return;
+  try{
+    await sb.from('resumes').update({ title: newTitle.trim() }).eq('id', id);
+    loadResumesList();
+  }catch(e){ showToast('Could not rename. Try again.'); }
+}
+async function deleteResume(id){
+  if(!confirm('Delete this resume? This can\'t be undone.')) return;
+  try{
+    await sb.from('resumes').delete().eq('id', id);
+    loadResumesList();
+  }catch(e){ showToast('Could not delete. Try again.'); }
+}
+
+async function checkSubscription(){
+  if(!currentUser) return false;
+  try{
+    const { data: profile } = await sb.from('profiles').select('subscribed').eq('id', currentUser.id).maybeSingle();
+    return !!(profile && profile.subscribed);
+  }catch(e){ return false; }
+}
+function buildAtsPlainText(){
+  const p = data.personal;
+  const lines = [];
+  lines.push((p.name||'').toUpperCase() || 'YOUR NAME');
+  if(p.title) lines.push(p.title);
+  lines.push([p.email,p.phone,formatAddress(),p.linkedin,p.website].filter(Boolean).join(' | '));
+  lines.push('');
+  if(data.summary){ lines.push('SUMMARY'); lines.push(data.summary); lines.push(''); }
+  if(filledExperience().length){
+    lines.push(expSectionTitle().toUpperCase());
+    filledExperience().forEach(x=>{
+      lines.push(`${x.role||''}${x.company?' - '+x.company:''} (${x.start||''} - ${x.current?'Present':(x.end||'')})`);
+      if(x.location) lines.push(x.location);
+      (x.bullets||'').split('\n').map(l=>l.trim()).filter(Boolean).forEach(b=>lines.push('- '+b));
+      lines.push('');
+    });
+  }
+  if(filledEducation().length){
+    lines.push('EDUCATION');
+    filledEducation().forEach(x=>{
+      lines.push(`${x.degree||''}${x.field?', '+x.field:''} - ${x.school||''} (${x.start||''} - ${x.end||''})`);
+    });
+    lines.push('');
+  }
+  if(skillsList().length){ lines.push('SKILLS'); lines.push(skillsList().join(', ')); lines.push(''); }
+  if(learningList().length){ lines.push('CURRENTLY LEARNING'); lines.push(learningList().join(', ')); lines.push(''); }
+  if(filledProjects().length){
+    lines.push('PROJECTS');
+    filledProjects().forEach(x=>{ lines.push(`${x.name||''}${x.link?' - '+x.link:''}`); if(x.description) lines.push(x.description); });
+    lines.push('');
+  }
+  if(filledAwards().length){
+    lines.push('AWARDS & ACHIEVEMENTS');
+    filledAwards().forEach(x=>lines.push(`${x.title||''} - ${x.issuer||''} (${x.date||''})`));
+    lines.push('');
+  }
+  if(filledCertifications().length){
+    lines.push('CERTIFICATIONS');
+    filledCertifications().forEach(x=>lines.push(`${x.name||''} - ${x.issuer||''} (${x.date||''})`));
+  }
+  return lines.join('\n').trim();
+}
+/* ---------------- Writing checker (free, rule-based, no AI cost) ---------------- */
+const WEAK_OPENERS = ['responsible for','worked on','helped with','was involved in','assisted with','tasked with','in charge of','duties included','duties consisted of','handled','did'];
+const FILLER_WORDS = ['very','really','just','things','stuff','basically','actually','kind of','sort of'];
+const STRONG_VERB_EXAMPLES = ['Led','Built','Launched','Reduced','Streamlined','Delivered','Designed','Negotiated','Increased','Automated','Coordinated','Implemented'];
+const CLICHE_PHRASES = ['team player','hard worker','results-driven','self-starter','go-getter','think outside the box','detail-oriented','synergy','hit the ground running','wear many hats','proven track record'];
+const CONFUSABLE_PAIRS = [
+  {wrong:/\btheir\s+are\b/i, note:'"their are" — did you mean "there are"?'},
+  {wrong:/\bthere\s+own\b/i, note:'"there own" — did you mean "their own"?'},
+  {wrong:/\bloose\s+(track|weight|the|a)\b/i, note:'"loose" — did you mean "lose"?'},
+  {wrong:/\bthen\s+(managed|led|built|created|worked|handled)\b/i, note:'"then" — did you mean "than", or is this comparing two things?'},
+  {wrong:/\baffect\s+(on|of)\s+(sales|revenue|growth|performance)\b/i, note:'"affect" — did you mean the noun "effect"?'},
+  {wrong:/\blead\s+a\s+team\s+of\b/i, note:'"lead" — if this already happened, the past tense is "led."'},
+];
+const CONTRACTIONS_RE = /\b(don't|can't|won't|didn't|isn't|aren't|I'm|I've|we're|it's|that's|wasn't|weren't|couldn't|wouldn't|shouldn't)\b/i;
+const VERB_BANK = {
+  'Leadership': ['Led','Directed','Oversaw','Managed','Championed','Spearheaded','Mentored','Coached','Delegated','Supervised'],
+  'Impact & Results': ['Increased','Reduced','Improved','Achieved','Delivered','Exceeded','Generated','Saved','Grew','Accelerated'],
+  'Building & Technical': ['Built','Designed','Engineered','Developed','Implemented','Automated','Launched','Configured','Deployed','Migrated'],
+  'Communication': ['Presented','Negotiated','Facilitated','Authored','Advised','Coordinated','Trained','Documented','Persuaded','Liaised'],
+  'Analysis & Planning': ['Analyzed','Evaluated','Forecasted','Diagnosed','Streamlined','Audited','Researched','Identified','Mapped','Modeled'],
+  'Creative & Ops': ['Created','Produced','Curated','Redesigned','Standardized','Organized','Optimized','Piloted','Scaled','Restructured']
+};
+
+function checkBulletText(text){
+  const issues = [];
+  const trimmed = (text||'').trim();
+  if(!trimmed) return issues;
+  const lower = trimmed.toLowerCase();
+  const opener = WEAK_OPENERS.find(w=>lower.startsWith(w));
+  if(opener){
+    const suggestion = STRONG_VERB_EXAMPLES[Math.floor(Math.random()*STRONG_VERB_EXAMPLES.length)];
+    issues.push({type:'Weak opening', detail:`Starts with "${opener}" — try a strong action verb instead, like "${suggestion}."`});
+  }
+  if(/\b(was|were|is|are|been|being)\s+\w+(ed|en)\b/i.test(trimmed)){
+    issues.push({type:'Possible passive voice', detail:'Consider rewriting in active voice — say what you did, not what was done.'});
+  }
+  const foundFillers = FILLER_WORDS.filter(f=> new RegExp('\\b'+f+'\\b','i').test(trimmed));
+  if(foundFillers.length){
+    issues.push({type:'Filler words', detail:`Consider removing: ${foundFillers.join(', ')}.`});
+  }
+  const foundCliches = CLICHE_PHRASES.filter(c=> lower.includes(c));
+  if(foundCliches.length){
+    issues.push({type:'Generic phrase', detail:`"${foundCliches[0]}" is overused on resumes — describe the specific thing you did instead.`});
+  }
+  CONFUSABLE_PAIRS.forEach(p=>{
+    if(p.note && p.wrong.test(trimmed)){
+      issues.push({type:'Word check', detail:p.note});
+    }
+  });
+  if(CONTRACTIONS_RE.test(trimmed)){
+    issues.push({type:'Contraction', detail:"Resumes usually read more formally without contractions — spell it out (e.g. \"do not\" instead of \"don't\")."});
+  }
+  const repeatedWordMatch = trimmed.match(/\b(\w+)\s+\1\b/i);
+  if(repeatedWordMatch){
+    issues.push({type:'Repeated word', detail:`"${repeatedWordMatch[1]}" appears twice in a row.`});
+  }
+  const wordCount = trimmed.split(/\s+/).filter(Boolean).length;
+  if(wordCount > 28){
+    issues.push({type:'Long sentence', detail:`${wordCount} words — resume bullets read better under ~25 words. Consider splitting or trimming.`});
+  }
+  if(/ {2,}/.test(trimmed)){
+    issues.push({type:'Formatting', detail:'Extra spaces found between words.'});
+  }
+  if(/^[a-z]/.test(trimmed)){
+    issues.push({type:'Capitalization', detail:'Should probably start with a capital letter.'});
+  }
+  return issues;
+}
+
+function runWritingCheck(){
+  const results = [];
+  if(data.summary){
+    const issues = checkBulletText(data.summary);
+    if(issues.length) results.push({field:'Summary', text:data.summary, issues});
+  }
+  data.experience.forEach((x)=>{
+    const bullets = (x.bullets||'').split('\n').map(l=>l.trim()).filter(Boolean);
+    bullets.forEach(b=>{
+      const issues = checkBulletText(b);
+      if(issues.length) results.push({field:`${x.role||'Experience'}${x.company?' — '+x.company:''}`, text:b, issues});
+    });
+    if(bullets.length && !bullets.some(b=>/\d/.test(b))){
+      results.push({field:`${x.role||'Experience'}${x.company?' — '+x.company:''}`, text:'(all bullets for this role)', issues:[{type:'No numbers found', detail:'None of these bullets include a number — a team size, percentage, timeframe, or amount makes impact concrete. Add one where you genuinely have it.'}]});
+    }
+    if(!x.current && bullets.length > 1){
+      const tenseOf = b=>{
+        const w = (b.trim().match(/^[A-Za-z]+/)||[''])[0];
+        if(/ed$/i.test(w)) return 'past';
+        if(/s$/i.test(w) && w.length>3) return 'present';
+        return null;
+      };
+      const tensesSeen = new Set(bullets.map(tenseOf).filter(Boolean));
+      if(tensesSeen.size > 1){
+        results.push({field:`${x.role||'Experience'}${x.company?' — '+x.company:''}`, text:'(bullets for this role)', issues:[{type:'Mixed tense', detail:'These bullets mix past and present tense (e.g. "Led" vs "Manages") — since this role isn\'t marked current, past tense throughout usually reads more consistently.'}]});
+      }
+    }
+  });
+  data.projects.forEach((x)=>{
+    if(x.description){
+      const issues = checkBulletText(x.description);
+      if(issues.length) results.push({field:`Project: ${x.name||'Untitled'}`, text:x.description, issues});
+    }
+  });
+  return results;
+}
+
+function showWritingCheck(){
+  if(!hasAnyContent()){ showToast('Add some resume details first.'); return; }
+  const results = runWritingCheck();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  let body;
+  if(!results.length){
+    body = `<p style="color:var(--text-muted);font-size:13.5px;">No common issues found — nice and clean. Always give it your own final read too; this checks patterns, not full grammar.</p>`;
+  }else{
+    body = results.map(r=>`
+      <div style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line);text-align:left;">
+        <div style="font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px;">${escHtml(r.field)}</div>
+        <div style="font-size:13px;color:#333;margin-bottom:8px;font-style:italic;">"${escHtml(r.text)}"</div>
+        ${r.issues.map(i=>`<div style="font-size:12.5px;color:var(--accent);margin-bottom:3px;"><b>${escHtml(i.type)}:</b> ${escHtml(i.detail)}</div>`).join('')}
+      </div>
+    `).join('');
+  }
+  overlay.innerHTML = `<div class="modal-card ats-modal">
+    <h3>Writing check</h3>
+    <p style="color:var(--text-muted);font-size:13px;">Free, rule-based checks for passive voice, weak openings, filler words, and long sentences — runs right in your browser, no AI involved. Use judgment on each suggestion.</p>
+    <div class="ats-text" style="font-family:var(--font-ui);">${body}</div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="auth-submit" id="wcSynBtn" style="background:var(--ink);flex:1;">Open synonym finder</button>
+      <button class="auth-submit" id="wcClose" style="flex:1;">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('wcClose').addEventListener('click', ()=>overlay.remove());
+  document.getElementById('wcSynBtn').addEventListener('click', ()=>{ overlay.remove(); openSynonymSidebar(); });
+}
+
+function computeResumeScore(){
+  const items = [];
+  const p = data.personal;
+  const contactOk = !!(p.name && p.email && p.phone && EMAIL_RE.test(p.email||''));
+  items.push({label:'Contact details complete', points: contactOk?10:0, max:10, note: contactOk?'Name, email, and phone are all filled in.':'Fill in your name, email, and phone.'});
+
+  const summaryWords = (data.summary||'').trim().split(/\s+/).filter(Boolean).length;
+  const summaryPts = summaryWords>=15?10:(summaryWords>0?5:0);
+  items.push({label:'Summary', points:summaryPts, max:10, note: summaryWords>=15?'Good length.':(summaryWords>0?'A bit short — aim for 2 full sentences.':'Add a short professional summary.')});
+
+  const filledExp = filledExperience();
+  const expBulletsCount = filledExp.reduce((sum,x)=>sum+(x.bullets||'').split('\n').filter(l=>l.trim()).length,0);
+  const expPts = filledExp.length===0?0:(expBulletsCount>=2*filledExp.length?20:(expBulletsCount>0?12:6));
+  items.push({label:'Experience depth', points:expPts, max:20, note: filledExp.length===0?"No experience entries yet — or, if you're a fresher, that's expected.":(expBulletsCount>=2*filledExp.length?'Most roles have solid detail.':'Add a couple more bullets per role.')});
+
+  const anyMetric = filledExp.some(x=>/\d/.test(x.bullets||''));
+  items.push({label:'Quantified impact', points: anyMetric?15:0, max:15, note: anyMetric?'At least one bullet includes a real number.':'No numbers found in your experience — add one where you genuinely have data.'});
+
+  const eduOk = filledEducation().length>0;
+  items.push({label:'Education', points: eduOk?10:0, max:10, note: eduOk?'Education is filled in.':'Add your education.'});
+
+  const skillsOk = skillsList().length>=3;
+  items.push({label:'Skills', points: skillsOk?10:0, max:10, note: skillsOk?`${skillsList().length} skills listed.`:'List at least 3 skills.'});
+
+  const wcIssues = runWritingCheck().length;
+  const totalBullets = expBulletsCount + (data.summary?1:0) + filledProjects().length;
+  const cleanRatio = totalBullets>0 ? Math.max(0, 1 - wcIssues/Math.max(totalBullets,1)) : 1;
+  const wcPts = Math.round(cleanRatio*15);
+  items.push({label:'Writing quality', points: wcPts, max:15, note: wcIssues===0?'Writing check found no issues.':`Writing check flagged ${wcIssues} item(s) — see Writing check for details.`});
+
+  const breadth = (filledCertifications().length>0?1:0)+(filledProjects().length>0?1:0)+(filledAwards().length>0?1:0);
+  const breadthPts = Math.min(10, breadth*4);
+  items.push({label:'Extra sections', points: breadthPts, max:10, note: breadth>0?'Projects/certifications/awards add good breadth.':'Optional: add projects, certifications, or awards if relevant.'});
+
+  const total = items.reduce((s,i)=>s+i.points,0);
+  return {score: total, items};
+}
+
+function showResumeScore(){
+  if(!hasAnyContent()){ showToast('Add some resume details first.'); return; }
+  const {score, items} = computeResumeScore();
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  const color = score>=80?'#2F6B4F':(score>=55?'#8A5A1E':'#A83E2C');
+  overlay.innerHTML = `<div class="modal-card ats-modal" style="text-align:center;">
+    <h3>Resume score</h3>
+    <div style="font-family:var(--font-display);font-size:44px;font-weight:600;color:${color};margin:6px 0 4px;">${score}<span style="font-size:16px;color:var(--text-muted);font-family:var(--font-ui);">/100</span></div>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">A free, rule-based checklist of completeness and writing quality — not an AI judgment, just structured scoring.</p>
+    <div class="ats-text" style="font-family:var(--font-ui);text-align:left;">
+      ${items.map(i=>`
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#222;"><span>${escHtml(i.label)}</span><span>${i.points}/${i.max}</span></div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${escHtml(i.note)}</div>
+        </div>
+      `).join('')}
+    </div>
+    <button class="auth-submit" id="scoreClose" style="margin-top:12px;">Close</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('scoreClose').addEventListener('click', ()=>overlay.remove());
+}
+
+function openSynonymSidebar(prefill){
+  document.getElementById('synonymSidebar').classList.add('open');
+  document.getElementById('synOverlayBg').classList.add('open');
+  if(prefill){
+    document.getElementById('synInput').value = prefill;
+    lookupSynonyms(prefill);
+  }
+}
+function closeSynonymSidebar(){
+  document.getElementById('synonymSidebar').classList.remove('open');
+  document.getElementById('synOverlayBg').classList.remove('open');
+}
+async function lookupSynonyms(word){
+  const body = document.getElementById('synBody');
+  const w = (word||'').trim();
+  if(!w){ showToast('Type a word first.'); return; }
+  body.innerHTML = `<div class="syn-hint">Looking up "${escHtml(w)}"…</div>`;
+  try{
+    const res = await fetch('https://api.datamuse.com/words?rel_syn='+encodeURIComponent(w)+'&max=16');
+    if(!res.ok) throw new Error('lookup failed');
+    const results = await res.json();
+    if(!results.length){
+      body.innerHTML = `<div class="syn-hint">No synonyms found for "${escHtml(w)}" — try a simpler or more common word.</div>`;
+      return;
+    }
+    body.innerHTML = `
+      <div class="syn-hint">Synonyms for "${escHtml(w)}" — click to copy:</div>
+      <div class="syn-chip-wrap">${results.map(r=>`<button type="button" class="verb-chip" data-syn="${escAttr(r.word)}">${escHtml(r.word)}</button>`).join('')}</div>
+    `;
+    body.querySelectorAll('[data-syn]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const val = btn.getAttribute('data-syn');
+        navigator.clipboard.writeText(val).then(()=>showToast(`Copied "${val}"`)).catch(()=>showToast(`"${val}" — copy manually`));
+      });
+    });
+  }catch(e){
+    body.innerHTML = `<div class="syn-hint">Couldn't reach the synonym service right now — check your connection and try again.</div>`;
+  }
+}
+
+function showVerbBank(){
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML = `<div class="modal-card ats-modal">
+    <h3>Action verb bank</h3>
+    <p style="color:var(--text-muted);font-size:13px;">Click any verb to copy it, then paste it at the start of a bullet.</p>
+    <input type="text" id="verbSearch" placeholder="Search verbs…" style="width:100%;padding:9px 12px;border:1px solid var(--line-strong);border-radius:7px;font-size:13.5px;margin-bottom:14px;box-sizing:border-box;">
+    <div id="verbList" class="ats-text" style="font-family:var(--font-ui);text-align:left;"></div>
+    <button class="auth-submit" id="verbClose" style="margin-top:16px;">Close</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  function renderVerbs(filter){
+    const listEl = document.getElementById('verbList');
+    const f = (filter||'').toLowerCase();
+    listEl.innerHTML = Object.entries(VERB_BANK).map(([cat,verbs])=>{
+      const shown = verbs.filter(v=>!f || v.toLowerCase().includes(f));
+      if(!shown.length) return '';
+      return `<div style="margin-bottom:14px;">
+        <div style="font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:8px;">${escHtml(cat)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${shown.map(v=>`<button type="button" class="verb-chip" data-verb="${v}">${v}</button>`).join('')}
+        </div>
+      </div>`;
+    }).join('') || `<div style="color:var(--text-muted);font-size:13px;">No verbs match "${escHtml(filter)}".</div>`;
+    listEl.querySelectorAll('[data-verb]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const verb = btn.getAttribute('data-verb');
+        navigator.clipboard.writeText(verb).then(()=>showToast(`Copied "${verb}"`)).catch(()=>showToast(`"${verb}" — copy manually`));
+      });
+    });
+  }
+  renderVerbs('');
+  document.getElementById('verbSearch').addEventListener('input', (e)=>renderVerbs(e.target.value));
+  document.getElementById('verbClose').addEventListener('click', ()=>overlay.remove());
+}
+
+function showAtsView(){
+  if(!hasAnyContent()){ showToast('Add some resume details first.'); return; }
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `<div class="modal-card ats-modal">
+    <h3>What an ATS scanner reads</h3>
+    <p style="color:var(--text-muted);font-size:13px;">Applicant Tracking Systems strip away all design and read your resume as plain text, in this order. If something important looks jumbled or missing here, it may not reach a recruiter correctly.</p>
+    <div class="ats-text">${escHtml(buildAtsPlainText())}</div>
+    <button class="auth-submit" id="atsClose" style="margin-top:16px;">Close</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('atsClose').addEventListener('click', ()=>overlay.remove());
+}
+
+function showPaywall(){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `<div class="modal-card">
+    <h3>Unlock Faircopy</h3>
+    <div class="modal-price">&#8377;149<span> / month</span></div>
+    <p>Get every template and unlimited PDF downloads with a Faircopy subscription.</p>
+    <button class="auth-submit" id="pwClose">Maybe later</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  document.getElementById('pwClose').addEventListener('click', ()=>overlay.remove());
+}
+function exportJson(){
+  const blob = new Blob([JSON.stringify({data,template},null,2)],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = (data.personal.name ? data.personal.name.replace(/\s+/g,'_') : 'resume') + '_data.json';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('Data downloaded.');
+}
+function importJson(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const parsed = JSON.parse(reader.result);
+      data = normalizeData(parsed.data || parsed);
+      template = parsed.template || 'classic';
+      renderForm(); renderTabs(); renderPreview();
+      showToast('Data imported.');
+    }catch(e){ showToast('That file could not be read.'); }
+  };
+  reader.readAsText(file);
+}
+function newResume(){
+  if(!confirm('Start a new blank resume? Unsaved changes will be lost.')) return;
+  data = {personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',careerStage:'experienced',photo:''},theme:'#A83E2C',summary:'',experience:[],education:[],skills:'',learning:'',projects:[],awards:[],certifications:[]};
+  addressExpanded = false;
+  renderForm(); renderPreview(); scheduleSave();
+}
+
+/* ---------------- Auth flow ---------------- */
+let authMode = 'signin';
+
+function setAuthMode(mode){
+  authMode = mode;
+  document.getElementById('tabSignIn').classList.toggle('active', mode==='signin');
+  document.getElementById('tabSignUp').classList.toggle('active', mode==='signup');
+  document.getElementById('authSubmit').textContent = mode==='signin' ? 'Log in' : 'Create account';
+  document.getElementById('authError').textContent = '';
+}
+document.getElementById('tabSignIn').addEventListener('click', ()=>setAuthMode('signin'));
+document.getElementById('tabSignUp').addEventListener('click', ()=>setAuthMode('signup'));
+
+document.getElementById('authSubmit').addEventListener('click', async ()=>{
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authError');
+  const btn = document.getElementById('authSubmit');
+  errEl.textContent = '';
+  if(!email || !password){ errEl.textContent = 'Enter an email and password.'; return; }
+  btn.disabled = true;
+  try{
+    if(authMode === 'signin'){
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if(error){ errEl.textContent = error.message; }
+    }else{
+      const { error } = await sb.auth.signUp({ email, password });
+      if(error){ errEl.textContent = error.message; }
+      else{ errEl.style.color = 'var(--ink-soft)'; errEl.textContent = 'Check your email to confirm your account, then log in.'; }
+    }
+  }catch(e){ errEl.textContent = 'Something went wrong. Try again.'; }
+  btn.disabled = false;
+});
+
+document.getElementById('btnLogout').addEventListener('click', async ()=>{
+  await sb.auth.signOut();
+});
+
+async function enterApp(user){
+  currentUser = user;
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('userEmail').textContent = user.email || '';
+  try{
+    const { data: rows, error } = await sb.from('resumes')
+      .select('id')
+      .eq('user_id', currentUser.id)
+      .order('updated_at', { ascending: false });
+    if(error) throw error;
+    if(!rows || rows.length === 0){
+      await createResume();
+    }else if(rows.length === 1){
+      await openResume(rows[0].id);
+    }else{
+      await showDashboard();
+    }
+  }catch(e){
+    await showDashboard();
+  }
+}
+
+function showAuthScreen(){
+  currentUser = null;
+  currentResumeId = null;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('dashboardScreen').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+}
+
+sb.auth.onAuthStateChange((event, session)=>{
+  if(session && session.user) enterApp(session.user);
+  else showAuthScreen();
+});
+
+/* ---------------- Init ---------------- */
+const paperEl = document.querySelector('.paper');
+paperEl.addEventListener('copy', (e)=>{
+  if(paperEl.classList.contains('locked')){ e.preventDefault(); showToast('Subscribe to copy or download your resume.'); }
+});
+paperEl.addEventListener('contextmenu', (e)=>{
+  if(paperEl.classList.contains('locked')){ e.preventDefault(); showToast('Subscribe to copy or download your resume.'); }
+});
+paperEl.addEventListener('dragstart', (e)=>{
+  if(paperEl.classList.contains('locked')) e.preventDefault();
+});
+
+document.getElementById('btnBackDash').addEventListener('click', showDashboard);
+document.getElementById('btnCreateResume').addEventListener('click', createResume);
+document.getElementById('btnLogoutDash').addEventListener('click', async ()=>{ await sb.auth.signOut(); });
+document.getElementById('btnAtsView').addEventListener('click', showAtsView);
+document.getElementById('btnWritingCheck').addEventListener('click', showWritingCheck);
+document.getElementById('btnResumeScore').addEventListener('click', showResumeScore);
+document.getElementById('btnVerbBank').addEventListener('click', showVerbBank);
+document.getElementById('btnSynonyms').addEventListener('click', ()=>openSynonymSidebar());
+document.getElementById('synClose').addEventListener('click', closeSynonymSidebar);
+document.getElementById('synOverlayBg').addEventListener('click', closeSynonymSidebar);
+document.getElementById('synGo').addEventListener('click', ()=>lookupSynonyms(document.getElementById('synInput').value));
+document.getElementById('synInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') lookupSynonyms(e.target.value); });
+document.getElementById('btnExportJson').addEventListener('click', exportJson);
+document.getElementById('btnImportJson').addEventListener('click', ()=>document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', (e)=>{ if(e.target.files[0]) importJson(e.target.files[0]); e.target.value=''; });
+document.getElementById('btnPdf').addEventListener('click', async ()=>{
+  const missing = requiredFieldsMissing();
+  if(missing.length){
+    missing.forEach(k=>touchedFields.add(k));
+    openSections.personal = true;
+    renderForm();
+    document.getElementById('formPane').scrollTop = 0;
+    showToast('Please fill in your name, phone, and a valid email first.');
+    return;
+  }
+  isSubscribed = await checkSubscription();
+  renderPreview();
+  if(isSubscribed) window.print();
+  else showPaywall();
+});
+</script>
+</body>
+</html>
