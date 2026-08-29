@@ -167,7 +167,7 @@ body{margin:0;font-family:var(--font-ui);background:var(--paper);color:var(--tex
 .pm-band{display:block;width:100%;height:12px;background:var(--accent);opacity:0.65;border-radius:2px;margin-bottom:6px;}
 .tpl-pick-label{display:block;font-size:10px;font-weight:600;color:var(--ink-soft);text-align:center;}
 .tpl-pick.active .tpl-pick-label{color:var(--accent);}
-.theme-swatches{display:flex;gap:8px;margin-top:10px;}
+.theme-swatches{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;max-width:400px;}
 .theme-swatch{
   width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;
   padding:0;position:relative;transition:transform .12s ease;box-shadow:0 1px 3px rgba(20,20,30,0.2) inset;
@@ -486,6 +486,64 @@ body{margin:0;font-family:var(--font-ui);background:var(--paper);color:var(--tex
 .tpl-boldhead .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
 .tpl-boldhead .r-skills{font-size:12.5px;line-height:1.8;}
 
+/* ---- Corner accent template ---- */
+.tpl-corner{font-family:var(--font-ui);padding:50px 54px;position:relative;overflow:hidden;}
+.tpl-corner::before{content:'';position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 90px 90px 0;border-color:transparent var(--r-accent, var(--accent)) transparent transparent;opacity:0.92;}
+.tpl-corner .r-name{font-size:27px;font-weight:700;color:#161616;}
+.tpl-corner .r-role{color:var(--r-accent, var(--accent));font-size:13px;margin-top:4px;font-weight:500;}
+.tpl-corner .r-contact{font-size:11.5px;color:#888;margin-top:8px;}
+.tpl-corner .r-section{margin-top:18px;}
+.tpl-corner .r-sec-title{font-size:11.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:#1a1a1a;margin-bottom:10px;}
+.tpl-corner .r-item{margin-bottom:12px;}
+.tpl-corner .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#161616;}
+.tpl-corner .r-item-sub{font-size:11.5px;color:#888;margin-top:1px;}
+.tpl-corner .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
+.tpl-corner .r-skills{font-size:12.5px;line-height:1.8;}
+
+/* ---- Duo (split header) template ---- */
+.tpl-duo{font-family:var(--font-ui);padding:0;}
+.tpl-duo .r-header{display:grid;grid-template-columns:1fr 250px;}
+.tpl-duo .r-head-left{padding:44px 40px;}
+.tpl-duo .r-head-right{background:var(--r-accent, var(--accent));color:#fff;padding:44px 26px;}
+.tpl-duo .r-name{font-size:25px;font-weight:700;color:#161616;}
+.tpl-duo .r-role{color:var(--r-accent, var(--accent));font-size:13px;margin-top:6px;}
+.tpl-duo .r-contact-line{font-size:11px;color:rgba(255,255,255,0.9);margin-bottom:8px;word-break:break-word;}
+.tpl-duo .r-body{padding:36px 40px;}
+.tpl-duo .r-section{margin-bottom:18px;}
+.tpl-duo .r-sec-title{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:#1a1a1a;border-bottom:1px solid var(--line);padding-bottom:5px;margin-bottom:10px;}
+.tpl-duo .r-item{margin-bottom:12px;}
+.tpl-duo .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#161616;}
+.tpl-duo .r-item-sub{font-size:11.5px;color:#888;margin-top:1px;}
+.tpl-duo .r-bullets{margin:6px 0 0;padding-left:16px;font-size:12.5px;line-height:1.55;color:#333;}
+.tpl-duo .r-skills{font-size:12.5px;line-height:1.8;}
+
+/* ---- Rule (double-line stationery) template ---- */
+.tpl-rule{font-family:var(--font-serif);padding:54px 64px;}
+.tpl-rule .r-header{border-bottom:3px double #333;padding-bottom:16px;margin-bottom:22px;}
+.tpl-rule .r-name{font-size:26px;font-weight:600;color:#1a1a1a;letter-spacing:0.5px;}
+.tpl-rule .r-role{font-size:13px;color:var(--r-accent, var(--accent));margin-top:6px;font-style:italic;}
+.tpl-rule .r-contact{font-size:11.5px;color:#888;margin-top:10px;}
+.tpl-rule .r-section{margin-bottom:20px;}
+.tpl-rule .r-sec-title{font-size:12.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:#333;border-bottom:1px double #999;padding-bottom:5px;margin-bottom:12px;}
+.tpl-rule .r-item{margin-bottom:13px;}
+.tpl-rule .r-item-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;color:#1a1a1a;}
+.tpl-rule .r-item-sub{font-size:12px;font-style:italic;color:#777;margin-top:1px;}
+.tpl-rule .r-bullets{margin:6px 0 0;padding-left:18px;font-size:12.5px;line-height:1.6;}
+.tpl-rule .r-skills{font-size:12.5px;line-height:1.8;}
+
+/* ---- Cards (stacked item cards) template ---- */
+.tpl-cards{font-family:var(--font-ui);padding:46px 50px;}
+.tpl-cards .r-name{font-size:26px;font-weight:700;color:#161616;}
+.tpl-cards .r-role{color:var(--r-accent, var(--accent));font-weight:500;margin-top:3px;font-size:13px;}
+.tpl-cards .r-contact{font-size:11.5px;color:#888;margin-top:8px;margin-bottom:6px;}
+.tpl-cards .r-section{margin-bottom:18px;}
+.tpl-cards .r-sec-title{font-size:11.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;color:#1a1a1a;margin-bottom:10px;}
+.tpl-cards .r-item-card{background:#fff;border:1px solid var(--line);border-left:3px solid var(--r-accent, var(--accent));border-radius:6px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(20,20,30,0.04);}
+.tpl-cards .r-item-top{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#161616;}
+.tpl-cards .r-item-sub{font-size:11px;color:#888;margin-top:1px;}
+.tpl-cards .r-bullets{margin:5px 0 0;padding-left:15px;font-size:12px;line-height:1.5;color:#333;}
+.tpl-cards .r-skills{font-size:12px;line-height:1.7;}
+
 .r-sep{color:#AAA;margin:0 6px;}
 
 /* ---------- Print ---------- */
@@ -727,7 +785,7 @@ let saveTimer = null;
 
 /* ---------------- State ---------------- */
 let data = {
-  personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',careerStage:'experienced',photo:''},
+  personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',instagram:'',facebook:'',pinterest:'',google:'',careerStage:'experienced',photo:''},
   theme:'#A83E2C',
   summary:'',
   experience:[],
@@ -748,7 +806,27 @@ const THEMES = [
   ['#6B3F72','Plum'],
   ['#8A5A1E','Amber'],
   ['#B23A5E','Rose'],
-  ['#33363F','Charcoal']
+  ['#33363F','Charcoal'],
+  ['#2255A4','Cobalt'],
+  ['#7A1F3D','Burgundy'],
+  ['#5C6B2E','Olive'],
+  ['#3D5A73','Slate'],
+  ['#A67C00','Mustard'],
+  ['#4A2545','Aubergine'],
+  ['#1F7A5C','Emerald'],
+  ['#B5651D','Copper'],
+  ['#383075','Indigo'],
+  ['#5E1A2E','Wine'],
+  ['#5F7355','Sage'],
+  ['#35577D','Denim'],
+  ['#6B3226','Chestnut'],
+  ['#7A3B5D','Mulberry'],
+  ['#234D35','Pine'],
+  ['#8C4A9C','Orchid'],
+  ['#2E7D8C','Lagoon'],
+  ['#9C5B2E','Sienna'],
+  ['#4A4A6A','Twilight'],
+  ['#7D4A2E','Coffee']
 ];
 let openSections = {personal:true, summary:true, experience:true, education:false, skills:false, projects:false, awards:false, certifications:false};
 
@@ -768,6 +846,7 @@ const personalFields = [
 ];
 let touchedFields = new Set();
 let addressExpanded = false;
+let socialLinksExpanded = false;
 const COUNTRIES = ["India","United States","United Arab Emirates","United Kingdom","Canada","Australia","Singapore","Germany","France","Netherlands","Ireland","Switzerland","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","New Zealand","South Africa","Japan","China","Hong Kong","South Korea","Malaysia","Indonesia","Philippines","Thailand","Vietnam","Pakistan","Bangladesh","Sri Lanka","Nepal","Italy","Spain","Portugal","Sweden","Norway","Denmark","Finland","Belgium","Austria","Poland","Israel","Turkey","Egypt","Nigeria","Kenya","Brazil","Mexico","Argentina","Chile","Colombia","Russia","Other"];
 const STAGE_LABELS = {fresher:'Fresher',intern:'Intern',experienced:'Experienced'};
 const STAGE_SECTION_TITLE = {fresher:'Internships & training',intern:'Internship experience',experienced:'Work experience'};
@@ -869,7 +948,21 @@ function personalFieldsHtml(){
     <div style="font-size:11px;color:var(--text-muted);margin-top:-6px;margin-bottom:10px;">Tip: most people leave the street address off a resume for privacy — city, state, and country are usually enough.</div>
   ` : `<button type="button" id="btnExpandAddress" class="add-btn" style="margin-bottom:12px;">+ Add more address details</button>`;
 
-  return main + addressExtra;
+  const hasSocial = data.personal.instagram || data.personal.facebook || data.personal.pinterest || data.personal.google;
+  const socialExpanded = socialLinksExpanded || hasSocial;
+  const socialExtra = socialExpanded ? `
+    <div class="row2">
+      <div class="field"><label>Instagram</label><input type="text" data-personal="instagram" placeholder="instagram.com/you" value="${escAttr(data.personal.instagram)}"></div>
+      <div class="field"><label>Facebook</label><input type="text" data-personal="facebook" placeholder="facebook.com/you" value="${escAttr(data.personal.facebook)}"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Pinterest</label><input type="text" data-personal="pinterest" placeholder="pinterest.com/you" value="${escAttr(data.personal.pinterest)}"></div>
+      <div class="field"><label>Google / other link</label><input type="text" data-personal="google" placeholder="e.g. Google Business or Scholar profile" value="${escAttr(data.personal.google)}"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:-6px;margin-bottom:10px;">Tip: for most roles, LinkedIn and a portfolio link carry the most weight — add these extra ones if they're genuinely relevant to what you're applying for.</div>
+  ` : `<button type="button" id="btnExpandSocial" class="add-btn" style="margin-bottom:12px;">+ Add social &amp; other links</button>`;
+
+  return main + addressExtra + socialExtra;
 }
 
 function summaryHtml(){
@@ -958,6 +1051,9 @@ function attachFormEvents(){
 
   const expandBtn = pane.querySelector('#btnExpandAddress');
   if(expandBtn) expandBtn.addEventListener('click', ()=>{ addressExpanded = true; renderForm(); });
+
+  const expandSocialBtn = pane.querySelector('#btnExpandSocial');
+  if(expandSocialBtn) expandSocialBtn.addEventListener('click', ()=>{ socialLinksExpanded = true; renderForm(); });
 
   const photoInput = pane.querySelector('#photoInput');
   const uploadBtn = pane.querySelector('#btnUploadPhoto');
@@ -1058,7 +1154,11 @@ function renderTabs(){
     ['ribbon','Ribbon', ['block','dark50','accent25','line85']],
     ['tech','Tech', ['dark40','accent35','line80','line75']],
     ['balanced','Balanced', ['dark50','accent20','line80','line80']],
-    ['boldhead','Bold Header', ['dark70','accent15','line85','line75']]
+    ['boldhead','Bold Header', ['dark70','accent15','line85','line75']],
+    ['corner','Corner', ['dark55','accent30','line80','line75']],
+    ['duo','Duo', ['block','accent45','line80','line75']],
+    ['rule','Rule', ['dark50','accent20','line85','line80']],
+    ['cards','Cards', ['dark45','accent35','line80','accent20']]
   ];
   document.getElementById('templateTabs').innerHTML = tabs.map(([key,label,bars])=>`
     <button class="tpl-pick ${template===key?'active':''}" data-tpl="${key}" title="${label}">
@@ -1122,9 +1222,12 @@ function bulletsToLi(text){
   return (text||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>`<li>${escHtml(l)}</li>`).join('');
 }
 
-function contactLine(sep){
+function contactParts(){
   const p = data.personal;
-  return [p.email,p.phone,formatAddress(),p.linkedin,p.website].filter(Boolean).map(escHtml).join(` ${sep} `);
+  return [p.email,p.phone,formatAddress(),p.linkedin,p.website,p.instagram,p.facebook,p.pinterest,p.google].filter(Boolean);
+}
+function contactLine(sep){
+  return contactParts().map(escHtml).join(` ${sep} `);
 }
 function formatAddress(){
   const p = data.personal;
@@ -1167,6 +1270,10 @@ function renderPreview(){
   else if(template === 'tech') el.innerHTML = renderTech();
   else if(template === 'balanced') el.innerHTML = renderBalanced();
   else if(template === 'boldhead') el.innerHTML = renderBoldHead();
+  else if(template === 'corner') el.innerHTML = renderCorner();
+  else if(template === 'duo') el.innerHTML = renderDuo();
+  else if(template === 'rule') el.innerHTML = renderRule();
+  else if(template === 'cards') el.innerHTML = renderCards();
   else el.innerHTML = renderMinimal();
   paper.classList.toggle('locked', !isSubscribed);
   applyPageFit();
@@ -1276,7 +1383,7 @@ function renderModern(){
       ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
       <div class="r-block">
         <div class="r-block-title">Contact</div>
-        ${[p.email,p.phone,formatAddress(),p.linkedin,p.website].filter(Boolean).map(v=>`<div class="r-contact-line">${escHtml(v)}</div>`).join('')}
+        ${contactParts().map(v=>`<div class="r-contact-line">${escHtml(v)}</div>`).join('')}
       </div>
       ${skillsList().length?`<div class="r-block"><div class="r-block-title">Skills</div>${skillsList().map(s=>`<span class="r-skill-tag">${escHtml(s)}</span>`).join('')}</div>`:''}
       ${learningList().length?`<div class="r-block"><div class="r-block-title">Currently learning</div>${learningList().map(s=>`<span class="r-skill-tag">${escHtml(s)}</span>`).join('')}</div>`:''}
@@ -1449,7 +1556,7 @@ function renderSplit(){
       ${p.photo?`<img src="${p.photo}" class="r-photo">`:''}
       <div class="r-name">${escHtml(p.name)||'Your name'}</div>
       ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
-      ${[p.email,p.phone,formatAddress(),p.linkedin,p.website].filter(Boolean).map(v=>`<div class="r-contact-line">${escHtml(v)}</div>`).join('')}
+      ${contactParts().map(v=>`<div class="r-contact-line">${escHtml(v)}</div>`).join('')}
     </div>
     <div class="r-main">
       ${data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div>${escHtml(data.summary)}</div></div>`:''}
@@ -1497,7 +1604,7 @@ function renderInfographic(){
       ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
       <div class="r-block">
         <div class="r-block-title">Contact</div>
-        ${[p.email,p.phone,formatAddress(),p.linkedin,p.website].filter(Boolean).map(v=>`<div class="r-contact-line">${escHtml(v)}</div>`).join('')}
+        ${contactParts().map(v=>`<div class="r-contact-line">${escHtml(v)}</div>`).join('')}
       </div>
       ${skillsList().length?`<div class="r-block"><div class="r-block-title">Skills</div>${skillsList().map(s=>`<div class="r-skill-bar"><div class="r-skill-bar-label">${escHtml(s)}</div><div class="r-skill-bar-track"><div class="r-skill-bar-fill"></div></div></div>`).join('')}</div>`:''}
       ${filledEducation().length?`<div class="r-block"><div class="r-block-title">Education</div>${filledEducation().map(x=>`<div class="r-contact-line"><b>${escHtml(x.degree||'')}</b><br>${escHtml(x.school||'')}</div>`).join('')}</div>`:''}
@@ -1644,6 +1751,103 @@ function renderBoldHead(){
   `;
 }
 
+function renderCorner(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+    ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+    <div class="r-contact">${contactLine('|')}</div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function renderDuo(){
+  const p = data.personal;
+  return `
+    <div class="r-header">
+      <div class="r-head-left">
+        <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+        ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+      </div>
+      <div class="r-head-right">
+        ${contactParts().map(v=>`<div class="r-contact-line">${escHtml(v)}</div>`).join('')}
+      </div>
+    </div>
+    <div class="r-body">
+      ${data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div>${escHtml(data.summary)}</div></div>`:''}
+      ${filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:''}
+      ${filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:''}
+      ${skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:''}
+      ${learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:''}
+      ${filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:''}
+      ${filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards</div>${awardBlock()}</div>`:''}
+      ${filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''}
+    </div>
+  `;
+}
+
+function renderRule(){
+  const p = data.personal;
+  const blocks = {
+    summary: data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:'',
+    experience: filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlock()}</div>`:'',
+    education: filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockFull()}</div>`:'',
+    skills: skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:'',
+    learning: learningList().length?`<div class="r-section"><div class="r-sec-title">Currently learning</div><div class="r-skills">${learningList().join(' · ')}</div></div>`:'',
+    projects: filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:'',
+    awards: filledAwards().length?`<div class="r-section"><div class="r-sec-title">Awards &amp; achievements</div>${awardBlock()}</div>`:'',
+    certifications: filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''
+  };
+  return `
+    <div class="r-header">
+      <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+      ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+      <div class="r-contact">${contactLine('  ·  ')}</div>
+    </div>
+    ${sectionOrder().map(k=>blocks[k]).join('')}
+  `;
+}
+
+function expBlockCards(){
+  return filledExperience().map(x=>`
+    <div class="r-item-card">
+      <div class="r-item-top"><span>${escHtml(x.role||'Role')}${x.company?' — '+escHtml(x.company):''}</span><span>${escHtml(x.start)}${x.start||x.end?' – ':''}${x.current?'Present':escHtml(x.end)}</span></div>
+      <div class="r-item-sub"><span>${escHtml(x.location||'')}</span></div>
+      <ul class="r-bullets">${bulletsToLi(x.bullets)}</ul>
+    </div>`).join('');
+}
+function eduBlockCards(){
+  return filledEducation().map(x=>`
+    <div class="r-item-card">
+      <div class="r-item-top"><span>${escHtml(x.degree||'')}${x.field?', '+escHtml(x.field):''}</span><span>${escHtml(x.start)}${x.start||x.end?' – ':''}${escHtml(x.end)}</span></div>
+      <div class="r-item-sub"><span>${escHtml(x.school||'')}${x.gpa?' · '+escHtml(x.gpa):''}</span></div>
+    </div>`).join('');
+}
+function renderCards(){
+  const p = data.personal;
+  return `
+    <div class="r-name">${escHtml(p.name)||'Your name'}</div>
+    ${p.title?`<div class="r-role">${escHtml(p.title)}</div>`:''}
+    <div class="r-contact">${contactLine('|')}</div>
+    ${data.summary?`<div class="r-section"><div class="r-sec-title">Summary</div><div class="r-skills">${escHtml(data.summary)}</div></div>`:''}
+    ${filledExperience().length?`<div class="r-section"><div class="r-sec-title">${expSectionTitle()}</div>${expBlockCards()}</div>`:''}
+    ${filledEducation().length?`<div class="r-section"><div class="r-sec-title">Education</div>${eduBlockCards()}</div>`:''}
+    ${skillsList().length?`<div class="r-section"><div class="r-sec-title">Skills</div><div class="r-skills">${skillsList().join(' · ')}</div></div>`:''}
+    ${filledProjects().length?`<div class="r-section"><div class="r-sec-title">Projects</div>${projBlock()}</div>`:''}
+    ${filledCertifications().length?`<div class="r-section"><div class="r-sec-title">Certifications</div>${certBlock()}</div>`:''}
+  `;
+}
+
 /* ---------------- Toast ---------------- */
 function showToast(msg){
   const t = document.getElementById('toast');
@@ -1671,6 +1875,10 @@ function normalizeData(d){
   if(!d.personal.postal) d.personal.postal = '';
   if(!d.personal.address) d.personal.address = '';
   if(!d.personal.photo) d.personal.photo = '';
+  if(!d.personal.instagram) d.personal.instagram = '';
+  if(!d.personal.facebook) d.personal.facebook = '';
+  if(!d.personal.pinterest) d.personal.pinterest = '';
+  if(!d.personal.google) d.personal.google = '';
   d.summary = d.summary || '';
   d.skills = d.skills || '';
   d.learning = d.learning || '';
@@ -1801,7 +2009,7 @@ async function showDashboard(){
   }
 }
 async function createResume(){
-  const blank = {personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',careerStage:'experienced',photo:''},theme:'#A83E2C',summary:'',experience:[],education:[],skills:'',learning:'',projects:[],awards:[],certifications:[]};
+  const blank = {personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',instagram:'',facebook:'',pinterest:'',google:'',careerStage:'experienced',photo:''},theme:'#A83E2C',summary:'',experience:[],education:[],skills:'',learning:'',projects:[],awards:[],certifications:[]};
   try{
     let { data: row, error } = await sb.from('resumes').insert({
       user_id: currentUser.id, title: 'Untitled resume', data: blank, template: 'classic'
@@ -1819,8 +2027,8 @@ async function createResume(){
 }
 async function openResume(id){
   currentResumeId = id;
-  data = {personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',careerStage:'experienced',photo:''},theme:'#A83E2C',summary:'',experience:[],education:[],skills:'',learning:'',projects:[],awards:[],certifications:[]};
-  template = 'classic'; pageMode = 'multi'; addressExpanded = false; touchedFields = new Set();
+  data = {personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',instagram:'',facebook:'',pinterest:'',google:'',careerStage:'experienced',photo:''},theme:'#A83E2C',summary:'',experience:[],education:[],skills:'',learning:'',projects:[],awards:[],certifications:[]};
+  template = 'classic'; pageMode = 'multi'; addressExpanded = false; socialLinksExpanded = false; touchedFields = new Set();
   document.getElementById('dashboardScreen').style.display = 'none';
   document.getElementById('appScreen').style.display = 'flex';
   renderForm(); renderTabs(); renderPreview();
@@ -1868,7 +2076,7 @@ function buildAtsPlainText(){
   const lines = [];
   lines.push((p.name||'').toUpperCase() || 'YOUR NAME');
   if(p.title) lines.push(p.title);
-  lines.push([p.email,p.phone,formatAddress(),p.linkedin,p.website].filter(Boolean).join(' | '));
+  lines.push(contactParts().join(' | '));
   lines.push('');
   if(data.summary){ lines.push('SUMMARY'); lines.push(data.summary); lines.push(''); }
   if(filledExperience().length){
@@ -2229,8 +2437,8 @@ function importJson(file){
 }
 function newResume(){
   if(!confirm('Start a new blank resume? Unsaved changes will be lost.')) return;
-  data = {personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',careerStage:'experienced',photo:''},theme:'#A83E2C',summary:'',experience:[],education:[],skills:'',learning:'',projects:[],awards:[],certifications:[]};
-  addressExpanded = false;
+  data = {personal:{name:'',title:'',email:'',phone:'',location:'',address:'',state:'',postal:'',country:'',linkedin:'',website:'',instagram:'',facebook:'',pinterest:'',google:'',careerStage:'experienced',photo:''},theme:'#A83E2C',summary:'',experience:[],education:[],skills:'',learning:'',projects:[],awards:[],certifications:[]};
+  addressExpanded = false; socialLinksExpanded = false;
   renderForm(); renderPreview(); scheduleSave();
 }
 
