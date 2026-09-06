@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
 :root{
   color-scheme: light only;
@@ -777,6 +778,7 @@ body{margin:0;font-family:var(--font-ui);background:var(--paper);color:var(--tex
 /* ---------------- Supabase ---------------- */
 const SUPABASE_URL = 'https://hdcpgxipiwwmycuipclx.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_a7fO6ipaF7CuEMUJkZLXhQ_wja_m4fB';
+const RAZORPAY_KEY_ID = 'rzp_test_TYcGpsW63mJCFe'; // Public key — safe to expose client-side. Secret key lives only in Supabase Edge Functions.
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let currentResumeId = null;
@@ -2409,10 +2411,75 @@ function showPaywall(){
     <h3>Unlock Faircopy</h3>
     <div class="modal-price">&#8377;149<span> / month</span></div>
     <p>Get every template and unlimited PDF downloads with a Faircopy subscription.</p>
-    <button class="auth-submit" id="pwClose">Maybe later</button>
+    <button class="auth-submit" id="pwSubscribe" style="margin-bottom:10px;">Subscribe now</button>
+    <button class="auth-submit" id="pwClose" style="background:none;color:var(--text-muted);">Maybe later</button>
   </div>`;
   document.body.appendChild(overlay);
   document.getElementById('pwClose').addEventListener('click', ()=>overlay.remove());
+  document.getElementById('pwSubscribe').addEventListener('click', ()=>startCheckout(overlay));
+}
+
+async function startCheckout(paywallOverlay){
+  if(!currentUser){ showToast('Please log in first.'); return; }
+  const btn = document.getElementById('pwSubscribe');
+  if(btn){ btn.disabled = true; btn.textContent = 'Loading...'; }
+  try{
+    const orderRes = await fetch(`${SUPABASE_URL}/functions/v1/create-order`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY }
+    });
+    const order = await orderRes.json();
+    if(!orderRes.ok || order.error){ throw new Error(order.error ? JSON.stringify(order.error) : 'Could not start checkout'); }
+
+    const rzp = new Razorpay({
+      key: RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency,
+      order_id: order.id,
+      name: 'Faircopy',
+      description: 'Monthly subscription',
+      prefill: { email: currentUser.email || '' },
+      theme: { color: '#A83E2C' },
+      handler: async function(response){
+        try{
+          const verifyRes = await fetch(`${SUPABASE_URL}/functions/v1/verify-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}`, 'apikey': SUPABASE_KEY },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              user_id: currentUser.id
+            })
+          });
+          const verify = await verifyRes.json();
+          if(verifyRes.ok && verify.success){
+            isSubscribed = true;
+            renderPreview();
+            if(paywallOverlay) paywallOverlay.remove();
+            showToast('Subscribed! You can now download your resume.');
+          } else {
+            showToast('Payment verification failed. Contact support if money was deducted.');
+          }
+        }catch(e){
+          showToast('Could not verify payment. Contact support if money was deducted.');
+        }
+      },
+      modal: {
+        ondismiss: function(){
+          if(btn){ btn.disabled = false; btn.textContent = 'Subscribe now'; }
+        }
+      }
+    });
+    rzp.on('payment.failed', function(){
+      showToast('Payment failed. Please try again.');
+      if(btn){ btn.disabled = false; btn.textContent = 'Subscribe now'; }
+    });
+    rzp.open();
+  }catch(e){
+    showToast('Could not start checkout. Please try again.');
+    if(btn){ btn.disabled = false; btn.textContent = 'Subscribe now'; }
+  }
 }
 function exportJson(){
   const blob = new Blob([JSON.stringify({data,template},null,2)],{type:'application/json'});
